@@ -193,10 +193,10 @@ export default async function DashboardPage({ request }: { request: Request }) {
           dash.cloudflare.com → Billing
         </a>.
       </p>
-      {/* DEBUG — remove before ship */}
-      <div style={{ margin: "32px 32px 0", background: "#0a0a0a", border: "1px solid #333", borderRadius: 4, padding: 16 }}>
-        <div style={{ fontSize: 11, color: "#666", marginBottom: 8, fontFamily: "monospace" }}>DEBUG</div>
-        <pre style={{ fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+      {/* DEBUG PANEL */}
+      <details style={{ margin: "32px 32px 0", background: "#0a0a0a", border: "1px solid #333", borderRadius: 4, padding: 16 }}>
+        <summary style={{ fontSize: 11, color: "#666", fontFamily: "monospace", cursor: "pointer" }}>DEBUG</summary>
+        <pre style={{ fontSize: 11, color: "#888", fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-all", marginTop: 8 }}>
             {JSON.stringify({
             tokenTail: session.token.slice(-8),
             accountId: session.accountId,
@@ -206,7 +206,7 @@ export default async function DashboardPage({ request }: { request: Request }) {
             ),
             }, null, 2)}
         </pre>
-      </div>
+      </details>
     </div>
   );
 }
