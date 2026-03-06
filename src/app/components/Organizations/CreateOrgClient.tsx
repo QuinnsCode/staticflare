@@ -4,6 +4,289 @@ import { useState } from "react";
 import BetterAuthLogin from "@/app/pages/user/BetterAuthLogin";
 import { createOrganization } from "@/app/serverActions/orgs/createOrg";
 
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@600;700&display=swap');
+
+  :root {
+    --orange:   #e85d04;
+    --orange-l: #f48c06;
+    --orange-g: rgba(232,93,4,0.18);
+    --red:      #dc2626;
+    --red-l:    #ef4444;
+    --green-l:  #22c55e;
+    --bg:       #060a06;
+    --bg-2:     #0a0f0a;
+    --bg-3:     #0f160f;
+    --border:   rgba(255,255,255,0.05);
+    --border-o: rgba(232,93,4,0.2);
+    --border-r: rgba(220,38,38,0.2);
+    --text:     #e8f0e8;
+    --text-2:   #8a9e8a;
+    --text-3:   #3a4e3a;
+    --display:  'Barlow Condensed', sans-serif;
+    --condensed:'Barlow Condensed', sans-serif;
+    --mono:     'Share Tech Mono', monospace;
+  }
+
+  .co-page {
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 20px;
+    position: relative; overflow: hidden;
+    font-family: 'Barlow', sans-serif;
+    color: var(--text);
+  }
+
+  /* Grid background */
+  .co-page::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(232,93,4,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,93,4,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 20%, transparent 80%);
+  }
+
+  /* Scanlines */
+  .co-page::after {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 2px,
+      rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px
+    );
+  }
+
+  .co-card {
+    width: 100%; max-width: 520px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-o);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,93,4,0.06);
+    position: relative; z-index: 1;
+  }
+
+  .co-card-top {
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--orange), var(--orange-l));
+  }
+
+  .co-header {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid var(--border-o);
+    background: rgba(232,93,4,0.03);
+  }
+
+  .co-wordmark {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--display);
+    font-size: 16px; letter-spacing: 0.12em;
+    color: var(--orange-l); margin-bottom: 20px;
+    text-shadow: 0 0 20px var(--orange-g);
+  }
+  .co-wordmark-flame { color: var(--red-l); }
+
+  .co-title {
+    font-family: var(--display);
+    font-size: 28px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text);
+    margin-bottom: 6px;
+  }
+  .co-subtitle {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--text-3); text-transform: uppercase;
+  }
+  .co-subtitle span { color: var(--orange-l); }
+
+  .co-body { padding: 28px 32px 32px; }
+
+  /* Auth wrapper */
+  .co-auth-wrap {
+    background: var(--bg-3);
+    border: 1px solid var(--border-o);
+    border-radius: 3px; padding: 24px;
+    margin-bottom: 24px;
+  }
+  .co-auth-label {
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .co-auth-label::before {
+    content: ''; display: block;
+    width: 16px; height: 1px; background: var(--text-3);
+  }
+
+  /* Form fields */
+  .co-field { margin-bottom: 20px; }
+  .co-label {
+    display: block;
+    font-family: var(--condensed);
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-2); margin-bottom: 8px;
+  }
+  .co-input {
+    width: 100%;
+    background: var(--bg-3);
+    border: 1px solid var(--border-o);
+    border-radius: 3px;
+    padding: 11px 14px;
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text); outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .co-input::placeholder { color: var(--text-3); }
+  .co-input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px var(--orange-g);
+  }
+  .co-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .co-input-row {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--border-o); border-radius: 3px; overflow: hidden;
+  }
+  .co-input-row .co-input {
+    border: none; border-radius: 0; flex: 1;
+  }
+  .co-input-row .co-input:focus { box-shadow: none; }
+  .co-input-row:focus-within {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px var(--orange-g);
+  }
+  .co-input-suffix {
+    display: flex; align-items: center;
+    padding: 0 14px;
+    background: rgba(232,93,4,0.06);
+    border-left: 1px solid var(--border-o);
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-3); white-space: nowrap;
+  }
+
+  .co-hint {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3); margin-top: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Submit */
+  .co-submit {
+    width: 100%; padding: 14px;
+    background: linear-gradient(135deg, var(--red), var(--orange));
+    border: none; border-radius: 3px;
+    font-family: var(--display); font-size: 14px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: #fff; cursor: pointer;
+    box-shadow: 0 2px 24px var(--orange-g);
+    transition: all 0.2s; margin-top: 8px;
+    position: relative; overflow: hidden;
+  }
+  .co-submit::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.06));
+  }
+  .co-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 36px rgba(232,93,4,0.4);
+  }
+  .co-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .co-submit-inner { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .co-spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error / success */
+  .co-error {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: rgba(220,38,38,0.08);
+    border: 1px solid var(--border-r);
+    border-radius: 3px; padding: 12px 16px;
+    font-size: 13px; color: var(--red-l);
+    margin-bottom: 20px;
+    font-family: var(--mono); letter-spacing: 0.04em;
+  }
+  .co-success {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(22,163,74,0.08);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 3px; padding: 12px 16px;
+    font-size: 13px; color: var(--green-l);
+    margin-bottom: 20px;
+    font-family: var(--mono); letter-spacing: 0.04em;
+  }
+  .co-success-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-l); flex-shrink: 0;
+    box-shadow: 0 0 6px var(--green-l);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+  /* Info box */
+  .co-info {
+    margin-top: 24px; padding: 18px 20px;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  .co-info-title {
+    font-family: var(--condensed); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-2); margin-bottom: 12px;
+  }
+  .co-info-list { display: flex; flex-direction: column; gap: 8px; }
+  .co-info-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-2); line-height: 1.5;
+  }
+  .co-info-dot {
+    width: 4px; height: 4px; border-radius: 1px;
+    background: var(--orange-l); transform: rotate(45deg);
+    flex-shrink: 0; margin-top: 6px;
+  }
+
+  /* Footer strip */
+  .co-footer {
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .co-user {
+    font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    letter-spacing: 0.06em;
+  }
+  .co-user span { color: var(--orange-l); }
+  .co-signout {
+    background: none; border: none; cursor: pointer;
+    font-family: var(--condensed); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-3); transition: color 0.15s;
+  }
+  .co-signout:hover { color: var(--red-l); }
+  .co-signout:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .co-back {
+    margin-top: 20px; text-align: center;
+    font-family: var(--condensed); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-3);
+    position: relative; z-index: 1;
+  }
+  .co-back a { color: var(--text-3); transition: color 0.15s; }
+  .co-back a:hover { color: var(--orange-l); }
+`;
+
 interface CreateOrgClientProps {
   initialUser: any;
 }
@@ -14,263 +297,198 @@ export function CreateOrgClient({ initialUser }: CreateOrgClientProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle successful authentication
   const handleAuthSuccess = (authenticatedUser: any) => {
     setUser(authenticatedUser);
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
-  // Handle form submission with client-side redirect
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
-    
     try {
       const formData = new FormData(event.currentTarget);
       const result = await createOrganization(formData);
-      
       if (result.success) {
-        console.log('✅ Organization created successfully, redirecting to:', result.redirectUrl);
         window.location.href = result.redirectUrl!;
       } else {
         setError(result.error);
         setIsSubmitting(false);
       }
-    } catch (err) {
-      console.error('❌ Form submission error:', err);
-      setError('Failed to establish lair');
+    } catch {
+      setError("Failed to initialize workspace.");
       setIsSubmitting(false);
     }
   };
 
-  // If user is not logged in, show the login form with fantasy theme
+  // ── Not logged in ──────────────────────────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🏰</div>
-            <h2 className="text-3xl font-bold text-amber-100 mb-2" style={{ fontFamily: 'serif' }}>
-              Establish Your Lair
-            </h2>
-            <p className="text-amber-200">
-              Sign in or create an account to claim your domain
-            </p>
+      <>
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <div className="co-page">
+          <div className="co-card">
+            <div className="co-card-top" />
+            <div className="co-header">
+              <a href="/" className="co-wordmark">
+                <span className="co-wordmark-flame">▲</span> FLAREUP
+              </a>
+              <div className="co-title">Access required</div>
+              <div className="co-subtitle">sign in to initialize workspace</div>
+            </div>
+            <div className="co-body">
+              <div className="co-auth-label">authenticate</div>
+              <div className="co-auth-wrap">
+                <BetterAuthLogin
+                  onAuthSuccess={handleAuthSuccess}
+                  redirectOnSuccess={false}
+                  showDevTools={false}
+                  className="w-full"
+                />
+              </div>
+            </div>
           </div>
-          
-          <div className="bg-black/60 backdrop-blur-sm border border-amber-700/50 rounded-lg p-6 shadow-2xl">
-            <BetterAuthLogin
-              onAuthSuccess={handleAuthSuccess}
-              redirectOnSuccess={false}
-              showDevTools={false}
-              className="w-full"
-            />
+          <div className="co-back">
+            <a href="/">← back to dashboard</a>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
-  // User is logged in, show the lair creation form
+  // ── Logged in ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-700 via-slate-800 to-slate-900 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      
-      {/* Ambient magical lighting effects */}
-      <div className="absolute top-20 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
-      
-      {/* Floating particles */}
-      <div className="absolute top-1/4 left-1/3 w-1 h-1 bg-yellow-300 rounded-full animate-ping opacity-60"></div>
-      <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-purple-300 rounded-full animate-pulse opacity-50"></div>
-      <div className="absolute bottom-1/3 left-1/4 w-1 h-1 bg-blue-300 rounded-full animate-bounce opacity-40"></div>
-      
-      <div className="max-w-2xl mx-auto relative z-10">
-        
-        {/* Success message */}
-        {showSuccess && (
-          <div className="mb-6 p-4 bg-green-900/60 backdrop-blur-sm border border-green-600/50 text-green-200 rounded-lg shadow-lg animate-pulse">
-            <span className="text-lg">✨</span> Welcome, {user.name || user.email}! Now establish your lair below.
-          </div>
-        )}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <div className="co-page">
+        <div className="co-card">
+          <div className="co-card-top" />
 
-        {/* Main card */}
-        <div className="bg-black/70 backdrop-blur-md border-2 border-amber-700/60 rounded-xl shadow-2xl overflow-hidden">
-          
-          {/* Header with decorative elements */}
-          <div className="bg-linear-to-r from-amber-900/50 to-orange-900/50 border-b-2 border-amber-700/60 p-8 relative">
-            <div className="absolute top-4 left-4 text-4xl opacity-30">🏰</div>
-            <div className="absolute top-4 right-4 text-4xl opacity-30">⚔️</div>
-            
-            <div className="text-center relative z-10">
-              <h1 className="text-4xl font-bold text-amber-100 mb-3" style={{ fontFamily: 'serif' }}>
-                Establish Your Lair
-              </h1>
-              <p className="text-amber-200 text-lg">
-                Greetings, <span className="font-semibold text-amber-100">{user.name || user.email}</span>!
-              </p>
-              <p className="text-amber-300 mt-2">
-                Claim your domain and forge your legend
-              </p>
+          <div className="co-header">
+            <a href="/" className="co-wordmark">
+              <span className="co-wordmark-flame">▲</span> FLAREUP
+            </a>
+            <div className="co-title">New workspace</div>
+            <div className="co-subtitle">
+              operator: <span>{user.name || user.email}</span>
             </div>
           </div>
-          
-          {/* Form content */}
-          <div className="p-8">
-            
-            {/* Error message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-900/60 backdrop-blur-sm border border-red-600/50 text-red-200 rounded-lg shadow-lg">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-3">⚠️</span>
-                  <span>{error}</span>
-                </div>
+
+          <div className="co-body">
+            {showSuccess && (
+              <div className="co-success">
+                <span className="co-success-dot" />
+                authenticated — configure your workspace below
               </div>
             )}
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              
-              {/* Lair Name */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-amber-200 mb-2">
-                  🏰 Lair Name
+
+            {error && (
+              <div className="co-error">
+                <span>✕</span>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit}>
+              <div className="co-field">
+                <label className="co-label" htmlFor="name">
+                  Workspace name
                 </label>
                 <input
+                  className="co-input"
                   type="text"
                   id="name"
                   name="name"
                   required
                   disabled={isSubmitting}
-                  className="w-full px-4 py-3 bg-slate-900/50 border-2 border-amber-700/50 rounded-lg text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  placeholder="The Golden Dragon's Keep"
+                  placeholder="Acme Corp"
+                  autoComplete="off"
                 />
-                <p className="mt-2 text-xs text-amber-300/70">
-                  Choose a name worthy of legend
-                </p>
+                <div className="co-hint">// human-readable label for your team</div>
               </div>
 
-              {/* Subdomain */}
-              <div>
-                <label htmlFor="slug" className="block text-sm font-semibold text-amber-200 mb-2">
-                  🗺️ Domain Seal (Subdomain)
+              <div className="co-field">
+                <label className="co-label" htmlFor="slug">
+                  Workspace slug
                 </label>
-                <div className="flex rounded-lg shadow-sm overflow-hidden">
+                <div className="co-input-row">
                   <input
+                    className="co-input"
                     type="text"
                     id="slug"
                     name="slug"
                     required
                     disabled={isSubmitting}
                     pattern="[a-z0-9\-]+"
-                    title="Only lowercase letters, numbers, and hyphens allowed"
-                    className="flex-1 px-4 py-3 bg-slate-900/50 border-2 border-r-0 border-amber-700/50 text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all rounded-l-lg"
-                    placeholder="golden-dragon"
+                    title="Lowercase letters, numbers, and hyphens only"
+                    placeholder="acme-corp"
+                    autoComplete="off"
                   />
-                  <span className="inline-flex blur-xs items-center px-4 py-3 border-2 border-l-0 border-amber-700/50 bg-slate-800/70 text-amber-300/60 text-sm font-mono rounded-r-lg">
-                    .qlave.com
-                  </span>
+                  <span className="co-input-suffix">.flareup.dev</span>
                 </div>
-                <p className="mt-2 text-xs text-amber-300/70">
-                  <span className="inline-flex items-center">
-                    <span className="mr-1">📍</span>
-                    Your lair will be at: <span className="font-mono ml-1">https://[your-seal]</span>
-                  </span>
-                  <span className="inline-flex blur-xs mx-1 font-mono">.qntbr.com</span>
-                </p>
-                <p className="mt-1 text-xs text-amber-400/60 italic">
-                  Use only lowercase letters, numbers, and hyphens
-                </p>
+                <div className="co-hint">// lowercase, hyphens only</div>
               </div>
 
-              {/* Submit button */}
               <button
+                className="co-submit"
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center items-center py-4 px-6 border-2 border-amber-600 rounded-lg shadow-lg text-base font-bold text-amber-100 bg-linear-to-r from-amber-700 to-orange-700 hover:from-amber-600 hover:to-orange-600 focus:outline-none focus:ring-4 focus:ring-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
-                style={{ fontFamily: 'serif' }}
               >
-                {isSubmitting ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-amber-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Forging Your Lair...
-                  </span>
-                ) : (
-                  <>
-                    <span className="mr-2">⚔️</span>
-                    Establish Lair
-                    <span className="ml-2">🏰</span>
-                  </>
-                )}
+                <span className="co-submit-inner">
+                  {isSubmitting ? (
+                    <>
+                      <span className="co-spinner" />
+                      Initializing…
+                    </>
+                  ) : (
+                    "Initialize workspace"
+                  )}
+                </span>
               </button>
             </form>
 
-            {/* Info box */}
-            <div className="mt-8 p-6 bg-linear-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-sm border border-blue-700/40 rounded-lg">
-              <h3 className="text-base font-bold text-blue-200 mb-3 flex items-center" style={{ fontFamily: 'serif' }}>
-                <span className="mr-2">📜</span>
-                What Powers Await?
-              </h3>
-              <ul className="text-sm text-blue-100/90 space-y-2">
-                <li className="flex items-start">
-                  <span className="mr-2 mt-0.5">👑</span>
-                  <span>You shall become the <strong className="text-blue-200">Grand Master</strong> of this lair</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2 mt-0.5">🗺️</span>
-                  <span>Claim your custom domain for your guild</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2 mt-0.5">🔮</span>
-                  <span>Forge mystical integrations and enchantments</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2 mt-0.5">⚔️</span>
-                  <span>Recruit fellow adventurers to your cause</span>
-                </li>
-              </ul>
+            <div className="co-info">
+              <div className="co-info-title">What gets created</div>
+              <div className="co-info-list">
+                {[
+                  "You become the owner — full alert config access",
+                  "Workspace slug becomes your dashboard subdomain",
+                  "Alert tiers and webhooks are scoped to this workspace",
+                  "Invite teammates to share cost visibility",
+                ].map(item => (
+                  <div className="co-info-item" key={item}>
+                    <span className="co-info-dot" />
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* User info and sign out */}
-            <div className="mt-8 pt-6 border-t border-amber-700/30">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-amber-300/80 flex items-center">
-                  <span className="mr-2">🧙</span>
-                  Signed in as <strong className="ml-1 text-amber-200">{user.name || user.email}</strong>
-                </span>
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={() => {
-                    import("@/lib/auth-client").then(({ authClient }) => {
-                      authClient.signOut().then(() => {
-                        setUser(null);
-                      });
-                    });
-                  }}
-                  className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors underline decoration-red-400/50 hover:decoration-red-300"
-                >
-                  🚪 Depart
-                </button>
+            <div className="co-footer">
+              <div className="co-user">
+                operator: <span>{user.name || user.email}</span>
               </div>
+              <button
+                className="co-signout"
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => {
+                  import("@/lib/auth-client").then(({ authClient }) => {
+                    authClient.signOut().then(() => setUser(null));
+                  });
+                }}
+              >
+                Sign out
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Return link */}
-        <div className="mt-6 text-center">
-          <a 
-            href="/" 
-            className="text-amber-300 hover:text-amber-100 transition-colors inline-flex items-center text-sm"
-          >
-            <span className="mr-2">←</span>
-            Return to the crossroads
-          </a>
+        <div className="co-back">
+          <a href="/">← back to dashboard</a>
         </div>
       </div>
-    </div>
+    </>
   );
 }

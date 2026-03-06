@@ -503,7 +503,7 @@ export default function BetterAuthSignup({ ctx }: { ctx: AppContext }) {
                     />
                     <div className="mt-2 flex items-center justify-between">
                       <FantasyText variant="secondary" className="text-xs">
-                        Your lair URL: <span className="text-amber-300">{lairSlug || 'your-lair'}.qntbr.com</span>
+                        Your lair URL: <span className="text-amber-300">{lairSlug || 'your-lair'}.flareup.dev</span>
                       </FantasyText>
                       {checkingSlug && (
                         <span className="text-xs text-amber-400">⏳ Checking...</span>

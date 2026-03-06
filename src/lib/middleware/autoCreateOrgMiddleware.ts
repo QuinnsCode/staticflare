@@ -113,7 +113,7 @@ function hasSubdomain(request: Request): boolean {
     return parts.length >= 2 && parts[1] === 'localhost';
   }
 
-  // Production: check for subdomain pattern (e.g., "myorg.qntbr.com")
+  // Production: check for subdomain pattern (e.g., "myorg.flareup.dev")
   const parts = hostname.split('.');
 
   // workers.dev: subdomain.worker.workers.dev (4 parts)
@@ -121,8 +121,8 @@ function hasSubdomain(request: Request): boolean {
     return parts.length >= 4;
   }
 
-  // qntbr.com: subdomain.qntbr.com (3 parts)
-  return parts.length >= 3 && hostname !== 'www.qntbr.com';
+  // flareup.dev: subdomain.flareup.dev (3 parts)
+  return parts.length >= 3 && hostname !== 'www.flareup.dev';
 }
 
 /**
@@ -136,15 +136,15 @@ function buildOrgRedirectUrl(orgSlug: string, request: Request): string {
   // Localhost
   if (hostname.includes('localhost')) {
     const port = url.port || '5173';
-    return `${protocol}//${orgSlug}.localhost:${port}/sanctum`;
+    return `${protocol}//${orgSlug}.localhost:${port}/dashboard`;
   }
 
   // Cloudflare workers.dev
   if (hostname.includes('workers.dev')) {
     const workerDomain = hostname.split('.').slice(-3).join('.');
-    return `${protocol}//${orgSlug}.${workerDomain}/sanctum`;
+    return `${protocol}//${orgSlug}.${workerDomain}/dashboard`;
   }
 
   // Production
-  return `${protocol}//${orgSlug}.qntbr.com/sanctum`;
+  return `${protocol}//${orgSlug}.flareup.dev/dashboard`;
 }

@@ -2,158 +2,219 @@
 
 import { useState, useMemo } from "react";
 
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow+Condensed:wght@600;700&display=swap');
+
+  .os-form { display: flex; flex-direction: column; gap: 20px; }
+
+  .os-label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: #8a9e8a; margin-bottom: 8px;
+  }
+
+  .os-input-row {
+    display: flex; align-items: stretch;
+    border: 1px solid rgba(232,93,4,0.22);
+    border-radius: 3px; overflow: hidden;
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  .os-input-row:focus-within {
+    border-color: #e85d04;
+    box-shadow: 0 0 0 3px rgba(232,93,4,0.15);
+  }
+  .os-input {
+    flex: 1; padding: 12px 14px;
+    background: #0a0f0a;
+    border: none; outline: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; color: #e8f0e8;
+    letter-spacing: 0.04em;
+  }
+  .os-input::placeholder { color: #3a4e3a; }
+  .os-input-suffix {
+    display: flex; align-items: center;
+    padding: 0 14px;
+    background: rgba(232,93,4,0.06);
+    border-left: 1px solid rgba(232,93,4,0.15);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: #3a4e3a;
+    white-space: nowrap;
+  }
+
+  .os-error {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px; color: #ef4444;
+    letter-spacing: 0.04em;
+    margin-top: 6px;
+  }
+  .os-hint {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: #3a4e3a;
+    letter-spacing: 0.04em; margin-top: 6px;
+  }
+
+  .os-submit {
+    width: 100%; padding: 13px;
+    background: linear-gradient(135deg, #dc2626, #e85d04);
+    border: none; border-radius: 3px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #fff; cursor: pointer;
+    box-shadow: 0 2px 20px rgba(232,93,4,0.2);
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .os-submit::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.05));
+  }
+  .os-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 32px rgba(232,93,4,0.35); }
+
+  .os-divider {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .os-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.05); }
+  .os-divider-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #3a4e3a; white-space: nowrap;
+  }
+
+  .os-quick-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .os-quick-btn {
+    padding: 10px 12px;
+    background: #0a0f0a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 3px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em;
+    color: #3a4e3a; cursor: pointer;
+    transition: all 0.15s; text-align: left;
+  }
+  .os-quick-btn:hover {
+    border-color: rgba(232,93,4,0.22);
+    color: #f48c06;
+    background: rgba(232,93,4,0.04);
+  }
+  .os-quick-btn span { color: #e85d04; margin-right: 6px; }
+`;
+
 export function OrganizationSelector() {
   const [orgSlug, setOrgSlug] = useState("");
   const [error, setError] = useState("");
 
-  // Dynamically determine the base domain and display text
   const { baseDomain, displayDomain, isLocalhost } = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return { baseDomain: '', displayDomain: '', isLocalhost: false };
+    if (typeof window === "undefined") {
+      return { baseDomain: "", displayDomain: "", isLocalhost: false };
     }
+    const { hostname, port } = window.location;
+    const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1";
 
-    const { hostname, port, protocol } = window.location;
-    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-    
     let baseDomain: string;
-    let displayDomain: string;
-
     if (isLocalhost) {
-      // Development environment
-      baseDomain = `${hostname}${port ? `:${port}` : ''}`;
-      displayDomain = `.${hostname}${port ? `:${port}` : ''}`;
-    } else if (hostname.includes('.workers.dev')) {
-      // Cloudflare Workers environment
-      const parts = hostname.split('.');
-      if (parts.length > 3) {
-        baseDomain = parts.slice(-3).join('.');
-      } else {
-        baseDomain = hostname;
-      }
-      displayDomain = `.${baseDomain}`;
+      baseDomain = `${hostname}${port ? `:${port}` : ""}`;
+    } else if (hostname.includes(".workers.dev")) {
+      const parts = hostname.split(".");
+      baseDomain = parts.length > 3 ? parts.slice(-3).join(".") : hostname;
     } else {
-      // Production website (custom domain)
-      const parts = hostname.split('.');
-      if (parts.length > 2) {
-        baseDomain = parts.slice(-2).join('.');
-      } else {
-        baseDomain = hostname;
-      }
-      displayDomain = `.${baseDomain}`;
+      const parts = hostname.split(".");
+      baseDomain = parts.length > 2 ? parts.slice(-2).join(".") : hostname;
     }
 
-    return { baseDomain, displayDomain, isLocalhost };
+    return { baseDomain, displayDomain: `.${baseDomain}`, isLocalhost };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!orgSlug.trim()) {
-      setError("Please enter a lair name, brave adventurer");
+      setError("workspace slug required");
       return;
     }
-
-    // Clean the slug
-    const cleanSlug = orgSlug.toLowerCase().replace(/[^a-z0-9-]/g, '').trim();
-    
+    const cleanSlug = orgSlug.toLowerCase().replace(/[^a-z0-9-]/g, "").trim();
     if (!cleanSlug) {
-      setError("Please enter a valid lair name (letters, numbers, and dashes only)");
+      setError("lowercase letters, numbers, and hyphens only");
       return;
     }
-
     setError("");
-
-    // Construct the new URL based on environment
-    const { protocol } = window.location;
-    const newUrl = `${protocol}//${cleanSlug}.${baseDomain}`;
-    
-    window.location.href = newUrl;
+    window.location.href = `${window.location.protocol}//${cleanSlug}.${baseDomain}`;
   };
 
-  const handleQuickSelect = (slug: string) => {
-    setOrgSlug(slug);
-  };
+  const quickTargets = isLocalhost
+    ? [
+        { label: "test", slug: "test" },
+        { label: "demo", slug: "demo" },
+        { label: "staging", slug: "staging" },
+        { label: "dashboard", slug: "dashboard" },
+      ]
+    : [
+        { label: "test", slug: "test" },
+        { label: "demo", slug: "demo" },
+        { label: "sandbox", slug: "sandbox" },
+        { label: "dashboard", slug: "dashboard" },
+      ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="orgSlug" className="block text-sm font-medium text-amber-200 mb-3">
-          🏰 Lair Name
-        </label>
-        <div className="flex rounded-lg shadow-lg overflow-hidden border border-amber-600/50">
-          <input
-            id="orgSlug"
-            type="text"
-            value={orgSlug}
-            onChange={(e) => setOrgSlug(e.target.value)}
-            placeholder="mystic-tower"
-            className="flex-1 px-4 py-3 bg-black/60 text-amber-100 placeholder-amber-400/60 focus:outline-none focus:ring-2 focus:ring-amber-500 border-0"
-            required
-          />
-          <span className="inline-flex items-center px-4 py-3 bg-amber-800/60 text-amber-200 text-sm border-l border-amber-600/50">
-            {displayDomain}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+      <form className="os-form" onSubmit={handleSubmit}>
+
+        <div>
+          <label className="os-label" htmlFor="orgSlug">
+            Workspace slug
+          </label>
+          <div className="os-input-row">
+            <input
+              className="os-input"
+              id="orgSlug"
+              type="text"
+              value={orgSlug}
+              onChange={(e) => setOrgSlug(e.target.value)}
+              placeholder="your-workspace"
+              autoComplete="off"
+              spellCheck={false}
+              required
+            />
+            <span className="os-input-suffix">{displayDomain}</span>
+          </div>
+          {error && (
+            <div className="os-error">
+              <span>✕</span> {error}
+            </div>
+          )}
+          <div className="os-hint">// enter slug to navigate to workspace</div>
+        </div>
+
+        <button className="os-submit" type="submit">
+          Access workspace →
+        </button>
+
+        <div className="os-divider">
+          <div className="os-divider-line" />
+          <span className="os-divider-label">
+            {isLocalhost ? "local targets" : "quick access"}
           </span>
+          <div className="os-divider-line" />
         </div>
-        
-        {error && (
-          <p className="mt-2 text-sm text-red-400 flex items-center">
-            ⚠️ {error}
-          </p>
-        )}
-        
-        <p className="mt-3 text-xs text-amber-300/80">
-          ✨ Enter your lair's mystical domain to access your virtual tabletop realm
-        </p>
-      </div>
 
-      <button
-        type="submit"
-        className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3 px-6 rounded-lg hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200 font-medium text-lg shadow-lg"
-      >
-        🗝️ Enter Lair
-      </button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-amber-700/50" />
+        <div className="os-quick-grid">
+          {quickTargets.map(({ label, slug }) => (
+            <button
+              key={slug}
+              type="button"
+              className="os-quick-btn"
+              onClick={() => setOrgSlug(slug)}
+            >
+              <span>›</span>{label}
+            </button>
+          ))}
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-3 bg-black/40 text-amber-300">
-            {isLocalhost ? '⚡ Quick portals' : '🌟 Renowned lairs'}
-          </span>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          onClick={() => handleQuickSelect("test")}
-          className="px-4 py-3 text-sm border border-amber-600/50 bg-black/30 text-amber-200 rounded-lg hover:bg-amber-900/30 hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200"
-        >
-          🧪 Test Chambers
-        </button>
-        <button
-          type="button"
-          onClick={() => handleQuickSelect("demo")}
-          className="px-4 py-3 text-sm border border-amber-600/50 bg-black/30 text-amber-200 rounded-lg hover:bg-amber-900/30 hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200"
-        >
-          🎭 Demo Hall
-        </button>
-        <button
-          type="button"
-          onClick={() => handleQuickSelect("tavern")}
-          className="px-4 py-3 text-sm border border-amber-600/50 bg-black/30 text-amber-200 rounded-lg hover:bg-amber-900/30 hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200"
-        >
-          🍺 The Tavern
-        </button>
-        <button
-          type="button"
-          onClick={() => handleQuickSelect("sanctum")}
-          className="px-4 py-3 text-sm border border-amber-600/50 bg-black/30 text-amber-200 rounded-lg hover:bg-amber-900/30 hover:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all duration-200"
-        >
-          🔮 Sanctum
-        </button>
-      </div>
-    </form>
+      </form>
+    </>
   );
 }

@@ -52,9 +52,9 @@ export const createAuth = () => {
   
         // Use void to prevent timing attacks (don't await)
         void resend!.emails.send({
-          from: "QNTBR <no-reply@doubledragonsupply.com>",
+          from: "flareup.dev <no-reply@doubledragonsupply.com>",
           to: [user.email],
-          subject: "Reset Your Password - QNTBR",
+          subject: "Reset Your Password - flareup.dev",
           html: getPasswordResetEmailHTML(url),
         }).then(() => {
           console.log('✅ Password reset email sent to:', user.email);
@@ -69,14 +69,14 @@ export const createAuth = () => {
         
         // Optional: Send confirmation email
         void resend!.emails.send({
-          from: "QNTBR <no-reply@doubledragonsupply.com>",
+          from: "flareup.dev <no-reply@doubledragonsupply.com>",
           to: [user.email],
-          subject: "Password Changed - QNTBR",
+          subject: "Password Changed - flareup.dev",
           html: `
             <h2>Password Changed</h2>
             <p>Your password has been successfully changed.</p>
             <p>If you did not make this change, please contact us immediately.</p>
-            <p>May your draws be legendary,<br>The QNTBR team</p>
+            <p>May your draws be legendary,<br>The flareup.dev team</p>
           `,
         }).catch((error) => {
           console.error('❌ Failed to send password changed confirmation:', error);
@@ -118,11 +118,11 @@ export const createAuth = () => {
     advanced: {
       crossSubDomainCookies: env.BETTER_AUTH_URL.includes('localhost')
       ? { enabled: false }
-      : { enabled: true, domain: ".qntbr.com" }
+      : { enabled: true, domain: ".flareup.dev" }
     },
     trustedOrigins: [
-      "https://qntbr.com",
-      "https://*.qntbr.com",
+      "https://flareup.dev",
+      "https://*.flareup.dev",
       "http://localhost:5173",
       "http://*.localhost:5173",
       "http://localhost:8787",

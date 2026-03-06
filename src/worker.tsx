@@ -18,7 +18,23 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import OrgNotFoundPage from "@/app/pages/errors/OrgNotFoundPage";
 import NoAccessPage from "@/app/pages/errors/NoAccessPage";
 import LandingPage from "@/app/pages/landing/LandingPage";
-import SanctumPage from "@/app/pages/sanctum/SanctumPage";
+
+// ── FlareUp imports ───────────────────────────────────────────────────────────
+import DashboardPage from "@/app/pages/dashboard/DashboardPage";
+import {
+  handleConnect,
+  handleDisconnect,
+  handleUsage,
+  handleStatus,
+} from "@/app/api/cf/index";
+import {
+  handleGetConfig,
+  handleSaveConfig,
+  handleTestWebhook,
+} from "@/app/api/alerts/index";
+import { getAlertConfig, evaluateAndAlert } from "@/lib/alerts/config";
+import { fetchAllUsage } from "@/lib/cf/client";
+import { estimateCosts, projectMonthEnd } from "@/lib/cf/pricing";
 
 // ── Durable Object exports ────────────────────────────────────────────────────
 export { SessionDurableObject } from "./session/durableObject";
@@ -34,8 +50,6 @@ export type AppContext = {
 };
 
 // ── URL normalization ─────────────────────────────────────────────────────────
-// Strips www and forces HTTPS in production.
-// Set PRIMARY_DOMAIN to your domain — subdomains are used for org scoping.
 function normalizeUrl(request: Request): Response | null {
   const url = new URL(request.url);
   const PRIMARY_DOMAIN = (env as any).PRIMARY_DOMAIN || "example.com";
@@ -81,29 +95,8 @@ export default defineApp([
 
   /**
    * ⚠️ CRITICAL MIDDLEWARE CHAIN — DO NOT REORDER ⚠️
-   *
    * Sets up ctx.user, ctx.organization, ctx.userRole on every request.
-   *
-   * Order matters:
-   *   1. initializeServices()       — DB + auth singleton setup
-   *   2. setupSessionContext()      — reads BetterAuth cookie → ctx.user
-   *   3. setupOrganizationContext() — reads subdomain → ctx.organization
-   *   4. autoCreateOrgMiddleware()  — creates org for new users, redirects
-   *
-   * Breaking this order causes:
-   *   - Login redirect failures
-   *   - "No Organization" errors on valid subdomains
-   *   - ctx.organization null on org subdomains
-   *
-   * DO NOT:
-   *   ❌ Add shouldRunMiddleware conditionals
-   *   ❌ Swap steps 2 and 3
-   *   ❌ Remove autoCreateOrgMiddleware
-   *   ❌ Add new middleware without testing the full login flow
-   *
-   * CACHE NOTE:
-   *   AUTH_CACHE_KV has 5-10 min TTL. If org appears missing after creation,
-   *   wait or flush KV manually.
+   * See original comments for full context.
    */
   async ({ ctx, request }) => {
     try {
@@ -120,7 +113,6 @@ export default defineApp([
       const result = await autoCreateOrgMiddleware(ctx, request);
       if (result) return result;
 
-      // Org error handling — redirect appropriately
       if (
         ctx.orgError &&
         !request.url.includes("/api/") &&
@@ -160,33 +152,41 @@ export default defineApp([
     }
   },
 
-  // ── User Session DO — WebSocket + Hibernation API example ──────────────────
-  // Connect: ws://your-domain/__user-session?userId=xxx&deviceId=yyy
-  // See src/durableObjects/userSessionDO.ts for the full pattern.
+  // ── WebSocket DO ────────────────────────────────────────────────────────────
   route("/__user-session", async ({ request }) => {
     const url = new URL(request.url);
     const userId = url.searchParams.get("userId");
-
-    if (!userId) {
-      return new Response("Missing userId", { status: 400 });
-    }
-
-    const id = env.USER_SESSION_DO.idFromName(userId);
-    const stub = env.USER_SESSION_DO.get(id);
+    if (!userId) return new Response("Missing userId", { status: 400 });
+    const id = (env as any).USER_SESSION_DO.idFromName(userId);
+    const stub = (env as any).USER_SESSION_DO.get(id);
     return stub.fetch(request);
   }),
 
-  // ── API routes ──────────────────────────────────────────────────────────────
+  // ── FlareUp API routes ──────────────────────────────────────────────────────
+  prefix("/api/cf", [
+    route("/connect", async ({ request }) => {
+      if (request.method === "DELETE") return handleDisconnect(request);
+      return handleConnect(request);
+    }),
+    route("/status", async ({ request }) => handleStatus(request)),
+    route("/usage",  async ({ request }) => handleUsage(request)),
+  ]),
+
+  prefix("/api/alerts", [
+    route("/config", async ({ request }) => {
+      if (request.method === "GET") return handleGetConfig();
+      return handleSaveConfig(request);
+    }),
+    route("/test-webhook", async ({ request }) => handleTestWebhook(request)),
+  ]),
+
+  // ── Existing API routes ─────────────────────────────────────────────────────
   prefix("/api", [
-    // Stripe checkout
     route("/stripe/create-checkout", async ({ request, ctx }) => {
-      const { default: handler } = await import(
-        "@/app/api/stripe/create-checkout"
-      );
+      const { default: handler } = await import("@/app/api/stripe/create-checkout");
       return handler({ request, ctx } as any);
     }),
 
-    // BetterAuth — Turnstile bot protection on signup
     route("/auth/*", async ({ request }) => {
       try {
         if (request.url.includes("/sign-up") && request.method === "POST") {
@@ -201,7 +201,6 @@ export default defineApp([
             }
           }
         }
-
         await initializeServices();
         const authInstance = initAuth();
         return await authInstance.handler(request);
@@ -213,38 +212,28 @@ export default defineApp([
       }
     }),
 
-    // Webhooks
     route("/webhooks/:service", async ({ request, params, ctx }) => {
       if (params.service === "stripe") {
-        const { default: handler } = await import(
-          "@/app/api/webhooks/stripe-wh"
-        );
+        const { default: handler } = await import("@/app/api/webhooks/stripe-wh");
         return handler({ request });
       }
       if (params.service === "lemonsqueezy") {
-        const { default: handler } = await import(
-          "@/app/api/webhooks/lemonsqueezy-wh"
-        );
+        const { default: handler } = await import("@/app/api/webhooks/lemonsqueezy-wh");
         return handler({ request, ctx });
       }
       return Response.json({ error: "Webhook not supported" }, { status: 404 });
     }),
 
-    // Catch-all dynamic API loader — drop a file in src/app/api/ and it's live
     route("*", async ({ request, params, ctx }) => {
       const apiPath = params.$0;
-
       if (!apiPath) {
         return new Response(
           JSON.stringify({ error: "API endpoint not specified" }),
           { status: 400, headers: { "Content-Type": "application/json" } }
         );
       }
-
       try {
-        const handler = await import(
-          /* @vite-ignore */ `@/app/api/${apiPath}`
-        );
+        const handler = await import(/* @vite-ignore */ `@/app/api/${apiPath}`);
         return await handler.default({ request, ctx, params, method: request.method });
       } catch (error: any) {
         if (error.message?.includes("Cannot resolve module")) {
@@ -272,38 +261,34 @@ export default defineApp([
     aboutRoute,
     termsRoute,
 
-    // Authenticated home — replace with your app's main page
-    route("/sanctum", SanctumPage),
+    // ── FlareUp pages ─────────────────────────────────────────────────────────
+    route("/dashboard", async ({ request }) => <DashboardPage request={request} />),
+    route("/alerts",    async ({ request }) => {
+      // TODO: AlertsConfigPage — for now redirect to dashboard
+      return new Response(null, { status: 302, headers: { Location: "/dashboard" } });
+    }),
 
-    // Root — landing for main domain, redirect to /sanctum for org subdomains
     route("/", [
       ({ ctx, request }) => {
         const url = new URL(request.url);
         if (url.pathname !== "/") return;
 
         const orgSlug = extractOrgFromSubdomain(request);
-        if (!orgSlug) return; // main domain → fall through to LandingPage
+        if (!orgSlug) return;
 
         if (ctx.orgError) return;
 
         if (ctx.organization && (!ctx.user || !ctx.userRole)) {
-          return new Response(null, {
-            status: 302,
-            headers: { Location: "/user/login" },
-          });
+          return new Response(null, { status: 302, headers: { Location: "/user/login" } });
         }
 
         if (ctx.organization && ctx.user && ctx.userRole) {
-          return new Response(null, {
-            status: 302,
-            headers: { Location: "/sanctum" },
-          });
+          return new Response(null, { status: 302, headers: { Location: "/dashboard" } });
         }
       },
       LandingPage,
     ]),
 
-    // Catch-all — redirect unknown paths to home
     route("/*", ({ request }) => {
       const url = new URL(request.url);
       if (
@@ -313,22 +298,57 @@ export default defineApp([
       ) {
         return;
       }
-      return new Response(null, {
-        status: 301,
-        headers: { Location: "/" },
-      });
+      return new Response(null, { status: 301, headers: { Location: "/" } });
     }),
   ]),
 ]);
 
-// ── Reference: adding a new DO ────────────────────────────────────────────────
-// 1. Create src/durableObjects/myDO.ts (model on userSessionDO.ts)
-// 2. Export it here:        export { MyDO } from './durableObjects/myDO'
-// 3. Add binding in wrangler.jsonc under [[durable_objects.bindings]]
-// 4. Add migration in wrangler.jsonc under [[migrations]]
-// 5. Wire a route:          route("/__mydo", async ({ request }) => { ... })
+// ── FlareUp cron handler ──────────────────────────────────────────────────────
+/**
+ * Scheduled monitoring — runs on a cron trigger.
+ * Reads CF_API_TOKEN + CF_ACCOUNT_ID from Worker secrets,
+ * fetches usage, evaluates alert rules, fires webhooks.
+ *
+ * Add to wrangler.jsonc:
+ *   "triggers": {
+ *     "crons": ["*\/5 * * * *", "0 * * * *", "0 0 * * *"]
+ *   }
+ *
+ * Cron 1 (every 5 min):  spike detection
+ * Cron 2 (every hour):   burn rate + month projection
+ * Cron 3 (daily 00:00):  full report webhook
+ */
+export const scheduled = async (
+  event: ScheduledEvent,
+  env: any,
+  _ctx: ExecutionContext
+) => {
+  const token = env.CF_API_TOKEN;
+  const accountId = env.CF_ACCOUNT_ID;
 
-// ── Reference: adding a new API endpoint ─────────────────────────────────────
-// Drop a file at src/app/api/my-endpoint.ts with a default export:
-//   export default async function({ request, ctx, params }) { ... }
-// It's automatically available at /api/my-endpoint — no route registration needed.
+  // If no server-side token configured, skip silently
+  // (user is relying on browser session only)
+  if (!token || !accountId) return;
+
+  try {
+    const [usage, alertConfig] = await Promise.all([
+      fetchAllUsage({ token, accountId }),
+      getAlertConfig(env.ALERT_CONFIG_KV),
+    ]);
+
+    const w   = usage.workers.status        === "ok" ? usage.workers.data        : { requests: 0, cpuTimeMs: 0 };
+    const ai  = usage.workersAI.status      === "ok" ? usage.workersAI.data      : { neurons: 0, requests: 0, byModel: [] };
+    const kv  = usage.kv.status             === "ok" ? usage.kv.data             : { reads: 0, writes: 0, deletes: 0, lists: 0 };
+    const d1  = usage.d1.status             === "ok" ? usage.d1.data             : { rowsRead: 0, rowsWritten: 0 };
+    const r2  = usage.r2.status             === "ok" ? usage.r2.data             : { classAOps: 0, classBOps: 0, storageGB: 0 };
+    const doU = usage.durableObjects.status === "ok" ? usage.durableObjects.data : { requests: 0, durationMs: 0 };
+    const q   = usage.queues.status         === "ok" ? usage.queues.data         : { operations: 0 };
+
+    const costs = estimateCosts({ workers: w, workersAI: ai, kv, d1, r2, durableObjects: doU, queues: q });
+    const projected = projectMonthEnd(costs);
+
+    await evaluateAndAlert(alertConfig, projected.total, costs.total);
+  } catch (err) {
+    console.error("FlareUp cron error:", err);
+  }
+};

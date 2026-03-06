@@ -1,338 +1,694 @@
-// @/app/pages/landing/LandingPage.tsx
-import { type RequestInfo } from "rwsdk/worker";
-import { 
-  FantasyBackground, 
-  FantasyCard, 
-  FantasyTitle, 
-  FantasyText, 
-  FantasyButton 
-} from "@/app/components/theme/FantasyTheme";
+"use client";
+// src/app/pages/landing/LandingPage.tsx
+import { Flame, Zap, ShieldCheck, Terminal, Bell, Eye } from "lucide-react";
 
-// REAL features for MTG social VTT
-const features = [
-  {
-    icon: '🎴',
-    title: 'Magic: The Gathering Sync',
-    description: 'Play MTG Commander online with friends. Every card play, life counter change, and board state syncs instantly.',
-  },
-  {
-    icon: '⚡',
-    title: 'Real-Time Multiplayer',
-    description: 'See everything as it happens. When someone taps mana or plays a spell, everyone sees it instantly—zero lag.',
-  },
-  {
-    icon: '🔗',
-    title: 'Share One Link',
-    description: 'Just share a link with your playgroup. No accounts required for players, no complicated setup—just click and play.',
-  },
-  {
-    icon: '👥',
-    title: 'Built for Groups',
-    description: 'Play Commander with your whole pod. Track life totals, commander damage, and board states for up to 8 players at once.',
-  },
-];
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap');
 
-// Helper to get proper domain URLs
-function getDomainUrl(subdomain: string | null, path: string, request: Request): string {
-  const url = new URL(request.url);
-  const isLocalhost = url.hostname.includes('localhost');
-  
-  if (isLocalhost) {
-    const port = url.port || '5173';
-    if (subdomain) {
-      return path;
-    }
-    return path;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: #060a06;
+    color: #e8f0e8;
+    -webkit-font-smoothing: antialiased;
   }
-  
-  const baseDomain = 'qntbr.com';
-  if (subdomain) {
-    return `https://${subdomain}.${baseDomain}${path}`;
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+
+  :root {
+    --orange:   #e85d04;
+    --orange-l: #f48c06;
+    --orange-g: rgba(232,93,4,0.22);
+    --red:      #dc2626;
+    --red-l:    #ef4444;
+    --red-g:    rgba(220,38,38,0.18);
+    --green:    #16a34a;
+    --green-l:  #22c55e;
+    --bg:       #060a06;
+    --bg-2:     #0a0f0a;
+    --bg-3:     #0f160f;
+    --border:   rgba(255,255,255,0.05);
+    --border-o: rgba(232,93,4,0.22);
+    --border-r: rgba(220,38,38,0.2);
+    --text:     #e8f0e8;
+    --text-2:   #8a9e8a;
+    --text-3:   #3a4e3a;
+    --display:  'Barlow Condensed', sans-serif;
+    --condensed:'Barlow Condensed', sans-serif;
+    --mono:     'Share Tech Mono', monospace;
   }
-  return `https://${baseDomain}${path}`;
-}
 
-// Main Landing Page Component
-export default function LandingPage({ ctx, request }: RequestInfo) {
-  const isLoggedIn = !!ctx.user;
-  const userOrg = ctx.organization?.slug;
-  
-  const sandboxUrl = getDomainUrl('sandbox', '/cardGame/regal-gray-wolf', request);
-  const orgUrl = userOrg ? getDomainUrl(userOrg, '/sanctum', request) : null;
+  /* ── Scanline overlay ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
 
+  /* ── Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 52px;
+    border-bottom: 1px solid var(--border-o);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(6,10,6,0.92);
+    backdrop-filter: blur(24px);
+  }
+  .wordmark {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--display);
+    font-size: 20px; letter-spacing: 0.12em;
+    color: var(--orange-l);
+    text-shadow: 0 0 20px var(--orange-g), 0 0 40px rgba(232,93,4,0.1);
+  }
+  .wordmark-flame { color: var(--red-l); animation: flicker 3s infinite; }
+  @keyframes flicker {
+    0%,100%{ opacity:1; text-shadow: 0 0 8px var(--red-l); }
+    92%{ opacity:1; }
+    93%{ opacity:0.7; text-shadow: none; }
+    94%{ opacity:1; text-shadow: 0 0 12px var(--red-l); }
+    96%{ opacity:0.85; }
+    97%{ opacity:1; }
+  }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px; border-radius: 3px;
+    background: rgba(22,163,74,0.08);
+    border: 1px solid rgba(34,197,94,0.2);
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--green-l);
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-l); box-shadow: 0 0 6px var(--green-l);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(0.8)} }
+
+  .nav-links { display: flex; align-items: center; gap: 6px; }
+  .btn-ghost {
+    padding: 8px 16px; border-radius: 3px;
+    font-family: var(--condensed); font-size: 12px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    background: transparent; color: var(--text-2); transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-o); }
+  .btn-primary {
+    padding: 9px 22px; border-radius: 3px;
+    font-family: var(--condensed); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--orange); color: #fff;
+    box-shadow: 0 2px 16px var(--orange-g); transition: all 0.15s;
+    border: 1px solid var(--orange);
+  }
+  .btn-primary:hover { background: var(--orange-l); transform: translateY(-1px); box-shadow: 0 4px 24px var(--orange-g); }
+
+  .btn-cta {
+    padding: 16px 44px; border-radius: 3px;
+    font-family: var(--display); font-size: 14px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    background: linear-gradient(135deg, var(--red), var(--orange));
+    color: #fff; border: none; cursor: pointer;
+    box-shadow: 0 2px 32px var(--orange-g), 0 0 0 1px rgba(232,93,4,0.3);
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .btn-cta::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.06));
+  }
+  .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 48px rgba(232,93,4,0.4), 0 0 0 1px rgba(232,93,4,0.5); }
+  .btn-outline {
+    padding: 16px 40px; border-radius: 3px;
+    font-family: var(--condensed); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    background: transparent; color: var(--text-2);
+    border: 1px solid var(--border-o); transition: all 0.15s;
+  }
+  .btn-outline:hover { color: var(--orange-l); border-color: var(--orange-l); background: var(--orange-g); }
+
+  /* ── Hero ── */
+  .hero {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 100px 24px 80px;
+    text-align: center; position: relative; overflow: hidden;
+    min-height: calc(100vh - 61px);
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -5%, rgba(232,93,4,0.09) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 5% 100%, rgba(220,38,38,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 40% at 95% 90%, rgba(232,93,4,0.04) 0%, transparent 50%);
+  }
+
+  /* Grid overlay */
+  .hero::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(232,93,4,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,93,4,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
+  }
+
+  .hero-alert {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 6px 18px; border-radius: 2px;
+    border: 1px solid var(--border-r);
+    background: rgba(220,38,38,0.06);
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--red-l); margin-bottom: 32px;
+    position: relative; z-index: 1;
+  }
+  .alert-blink {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red-l); box-shadow: 0 0 8px var(--red-l);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: clamp(52px, 9vw, 108px);
+    line-height: 0.95;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text); max-width: 900px;
+    margin-bottom: 12px; position: relative; z-index: 1;
+  }
+  .hero-title em { font-style: normal; color: var(--orange-l); 
+    text-shadow: 0 0 30px var(--orange-g), 0 0 60px rgba(232,93,4,0.12);
+  }
+  .hero-title .danger { color: var(--red-l);
+    text-shadow: 0 0 30px var(--red-g);
+  }
+
+  .hero-sub {
+    font-size: 17px; line-height: 1.8; color: var(--text-2);
+    max-width: 500px; letter-spacing: 0.01em;
+    margin-bottom: 8px; position: relative; z-index: 1;
+  }
+  .hero-aside {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--text-3); letter-spacing: 0.1em;
+    margin-bottom: 48px; position: relative; z-index: 1;
+  }
+  .hero-aside span { color: var(--orange); }
+
+  .hero-cta {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 56px;
+    position: relative; z-index: 1;
+  }
+
+  /* ── Terminal readout ── */
+  .terminal {
+    background: var(--bg-3);
+    border: 1px solid var(--border-o);
+    border-radius: 4px; overflow: hidden;
+    max-width: 480px; width: 100%;
+    position: relative; z-index: 1;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(232,93,4,0.06), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .terminal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(232,93,4,0.06);
+    border-bottom: 1px solid var(--border-o);
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .terminal-header-dots { display: flex; gap: 6px; }
+  .terminal-header-dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .terminal-header-dots span:nth-child(1) { background: var(--red); }
+  .terminal-header-dots span:nth-child(2) { background: var(--orange); }
+  .terminal-header-dots span:nth-child(3) { background: var(--green); }
+  .terminal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .terminal-line {
+    font-family: var(--mono); font-size: 12px;
+    line-height: 1.6; display: flex; gap: 10px;
+  }
+  .t-prompt { color: var(--orange); }
+  .t-ok { color: var(--green-l); }
+  .t-warn { color: var(--orange-l); }
+  .t-danger { color: var(--red-l); }
+  .t-dim { color: var(--text-3); }
+  .t-val { color: #e8f0e8; }
+  .cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--orange-l); margin-left: 2px;
+    animation: cursor-blink 1.1s step-end infinite;
+    vertical-align: text-bottom;
+  }
+  @keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── Two paths ── */
+  .two-paths {
+    padding: 88px 52px;
+    display: flex; flex-direction: column; align-items: center;
+    border-top: 1px solid var(--border);
+  }
+  .section-eyebrow {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-3); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-eyebrow::before, .section-eyebrow::after {
+    content: ''; display: block; width: 32px; height: 1px; background: var(--text-3);
+  }
+  .section-title {
+    font-family: var(--display); font-size: 36px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    text-align: center; color: var(--text); margin-bottom: 52px;
+  }
+  .paths-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; max-width: 900px; width: 100%;
+  }
+  .path-card {
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 40px 36px;
+    display: flex; flex-direction: column; gap: 16px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .path-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+  }
+  .path-card.hosted::before { background: linear-gradient(90deg, var(--orange), var(--orange-l)); }
+  .path-card.self::before   { background: linear-gradient(90deg, var(--red), var(--orange)); }
+  .path-card.hosted:hover { border-color: var(--border-o); background: rgba(232,93,4,0.02); }
+  .path-card.self:hover   { border-color: var(--border-r); background: rgba(220,38,38,0.02); }
+
+  .path-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 2px; width: fit-content;
+  }
+  .path-tag.hosted { background: rgba(232,93,4,0.08); color: var(--orange-l); border: 1px solid var(--border-o); }
+  .path-tag.self   { background: rgba(220,38,38,0.08); color: var(--red-l);    border: 1px solid var(--border-r); }
+
+  .path-title {
+    font-family: var(--display); font-size: 22px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--text);
+  }
+  .path-desc { font-size: 14px; line-height: 1.75; color: var(--text-2); }
+
+  .path-example {
+    background: var(--bg); border-radius: 3px; padding: 14px 16px;
+    font-family: var(--mono); font-size: 12px; border: 1px solid var(--border);
+    margin-top: 4px; line-height: 1.7;
+  }
+  .path-example.orange { color: var(--orange-l); border-color: var(--border-o); }
+  .path-example.red    { color: #f87171; border-color: var(--border-r); }
+  .path-example .dim { color: var(--text-3); }
+
+  .path-features { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+  .path-feature {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-2); line-height: 1.5;
+  }
+  .path-feature-dot {
+    width: 5px; height: 5px; border-radius: 1px;
+    margin-top: 7px; flex-shrink: 0; transform: rotate(45deg);
+  }
+  .hosted .path-feature-dot { background: var(--orange-l); }
+  .self   .path-feature-dot { background: var(--red-l); }
+
+  /* ── Features ── */
+  .features {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .feature { background: var(--bg); padding: 48px 40px; transition: background 0.2s; }
+  .feature:hover { background: var(--bg-2); }
+  .feature-icon { color: var(--orange-l); margin-bottom: 20px; }
+  .feature-title {
+    font-family: var(--condensed); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text); margin-bottom: 12px;
+  }
+  .feature-desc { font-size: 14px; line-height: 1.75; color: var(--text-2); }
+
+  /* ── Incident callout ── */
+  .incident {
+    padding: 72px 52px;
+    display: flex; flex-direction: column; align-items: center;
+    border-bottom: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .incident::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 50% 50%, rgba(220,38,38,0.04) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .incident-card {
+    max-width: 680px; width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--border-r);
+    border-radius: 4px; overflow: hidden;
+    position: relative; z-index: 1;
+  }
+  .incident-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 24px;
+    background: rgba(220,38,38,0.08);
+    border-bottom: 1px solid var(--border-r);
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .incident-level { color: var(--red-l); font-weight: bold; }
+  .incident-time { color: var(--text-3); margin-left: auto; }
+  .incident-body { padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .incident-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--mono); font-size: 13px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .incident-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .incident-key { color: var(--text-3); }
+  .incident-val { color: var(--text); }
+  .incident-val.bad { color: var(--red-l); font-weight: bold; }
+  .incident-val.ok { color: var(--green-l); }
+  .incident-footer {
+    padding: 14px 24px;
+    background: rgba(22,163,74,0.05);
+    border-top: 1px solid rgba(34,197,94,0.12);
+    font-family: var(--mono); font-size: 11px;
+    color: var(--green-l); letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 28px 52px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand {
+    font-family: var(--display); font-size: 13px;
+    letter-spacing: 0.14em;
+    display: flex; align-items: center; gap: 10px; color: var(--text-3);
+  }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-family: var(--condensed); font-size: 11px; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text-3); transition: color 0.15s;
+  }
+  .footer-links a:hover { color: var(--orange-l); }
+
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    .hero { padding: 72px 20px 60px; min-height: auto; padding-top: 56px; }
+    .two-paths { padding: 56px 20px; }
+    .paths-grid { grid-template-columns: 1fr; }
+    .features { grid-template-columns: 1fr; }
+    .incident { padding: 48px 20px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; padding: 24px 20px; }
+  }
+`;
+
+export default function LandingPage() {
   return (
-    <FantasyBackground variant="minimal">
-      <div className="min-h-screen">
-        
-        {/* Header */}
-        <header className="p-3 sm:p-4 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-10 backdrop-blur-sm bg-stone-900/80 border-b border-amber-800/50">
-          <a href="/" className="flex items-center space-x-2">
-             <FantasyTitle size="sm" className="!text-white tracking-widest text-lg sm:text-xl">
-               QNTBR
-             </FantasyTitle>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      {/* Nav */}
+      <nav>
+        <a href="/">
+          <span className="wordmark">
+            <span className="wordmark-flame">▲</span> FLAREUP
+          </span>
+        </a>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <span className="status-pill">
+            <span className="status-dot" />
+            Systems nominal
+          </span>
+        </div>
+        <div className="nav-links">
+          <a href="https://github.com/QuinnsCode/flareup" target="_blank" rel="noopener">
+            <button className="btn-ghost">GitHub</button>
           </a>
-          
-          <nav className="flex gap-2 sm:gap-3 flex-wrap justify-end">
-            <FantasyButton variant="secondary" className="text-sm sm:text-base whitespace-nowrap">
-              <a href="/pricing" className="px-3 sm:px-4">
-                Pricing
-              </a>
-            </FantasyButton>
-            {isLoggedIn && orgUrl ? (
-              <FantasyButton variant="primary" className="text-sm sm:text-base whitespace-nowrap">
-                <a href={orgUrl} className="px-3 sm:px-4">
-                  My Games
-                </a>
-              </FantasyButton>
-            ) : isLoggedIn ? (
-              <>
-                <FantasyButton variant="secondary" className="text-sm sm:text-base whitespace-nowrap">
-                  <a href={sandboxUrl} className="px-3 sm:px-4">
-                    Try Demo
-                  </a>
-                </FantasyButton>
-                <FantasyButton variant="primary" className="text-sm sm:text-base whitespace-nowrap">
-                  <a href="/user/signup" className="px-3 sm:px-4">
-                    Sign Up
-                  </a>
-                </FantasyButton>
-                <FantasyButton variant="primary" className="text-sm sm:text-base whitespace-nowrap">
-                  <a href="/user/login" className="px-3 sm:px-4">
-                    Sign In
-                  </a>
-                </FantasyButton>
-              </>
-            ) : (
-              <>
-                <FantasyButton variant="secondary" className="text-sm sm:text-base whitespace-nowrap">
-                  <a href={sandboxUrl} className="px-3 sm:px-4">
-                    Try Demo
-                  </a>
-                </FantasyButton>
-                <FantasyButton variant="primary" className="text-sm sm:text-base whitespace-nowrap">
-                  <a href="/user/login" className="px-3 sm:px-4">
-                    Login
-                  </a>
-                </FantasyButton>
-              </>
-            )}
-          </nav>
-        </header>
+          <a href="/dashboard">
+            <button className="btn-primary">Open Dashboard</button>
+          </a>
+        </div>
+      </nav>
 
+      <main>
         {/* Hero */}
-        <section className="min-h-[calc(100vh-80px)] flex items-center justify-center text-center p-4 sm:p-8 bg-linear-to-b from-stone-900 via-stone-800 to-stone-900">
-          <FantasyCard className="p-6 sm:p-12 max-w-4xl w-full bg-stone-900/90 border-2 sm:border-4 border-amber-800 shadow-2xl">
-            <FantasyTitle size="xl" className="mb-3 sm:mb-4 text-white drop-shadow-lg text-2xl sm:text-4xl lg:text-5xl">
-              Play MTG Commander Online
-            </FantasyTitle>
-            <FantasyText variant="primary" className="text-base sm:text-xl text-amber-200 mb-6 sm:mb-8 max-w-2xl mx-auto">
-              The social virtual tabletop for Magic: The Gathering. Share a link, sync your decks, play together—no webcam juggling required.
-            </FantasyText>
-            
-            <div className="flex gap-3 sm:gap-4 justify-center flex-wrap">
-              {isLoggedIn && orgUrl ? (
-                <>
-                  <FantasyButton variant="magic" size="lg" className="text-sm sm:text-base">
-                    <a href={orgUrl} className="block w-full h-full px-4 sm:px-8">
-                      My Games
-                    </a>
-                  </FantasyButton>
-                  <FantasyButton variant="secondary" size="lg" className="text-sm sm:text-base">
-                    <a href={sandboxUrl} className="block w-full h-full px-4 sm:px-8">
-                      Try Demo
-                    </a>
-                  </FantasyButton>
-                </>
-              ) : isLoggedIn ? (
-                <>
-                  <FantasyButton variant="magic" size="lg" className="text-sm sm:text-base">
-                    <a href="/user/signup" className="block w-full h-full px-4 sm:px-8">
-                      Sign Up
-                    </a>
-                  </FantasyButton>
-                  <FantasyButton variant="secondary" size="lg" className="text-sm sm:text-base">
-                    <a href={sandboxUrl} className="block w-full h-full px-4 sm:px-8">
-                      Try Demo
-                    </a>
-                  </FantasyButton>
-                </>
-              ) : (
-                <>
-                  <FantasyButton variant="magic" size="lg" className="text-sm sm:text-base">
-                    <a href={sandboxUrl} className="block w-full h-full px-4 sm:px-8">
-                      🚀 Start Free
-                    </a>
-                  </FantasyButton>
-                  <FantasyButton variant="secondary" size="lg" className="text-sm sm:text-base">
-                    <a href={sandboxUrl} className="block w-full h-full px-4 sm:px-8">
-                      Try Demo
-                    </a>
-                  </FantasyButton>
-                </>
-              )}
-            </div>
-            
-            {!isLoggedIn && (
-              <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-amber-400/80">
-                Try the demo instantly • No account required • 100% free to start
-              </p>
-            )}
-          </FantasyCard>
-        </section>
+        <section className="hero">
+          <div className="hero-alert">
+            <span className="alert-blink" />
+            ALERT — $8,000 Cloudflare bill detected — 03:47 UTC
+          </div>
 
-        {/* Features */}
-        <section id="features" className="py-12 sm:py-20 px-4 sm:px-8 bg-stone-900/90 border-t border-b border-amber-800/50">
-          <div className="max-w-7xl mx-auto">
-            <FantasyTitle size="lg" className="text-center mb-8 sm:mb-12 text-amber-300 text-xl sm:text-3xl">
-              Built for Social Commander Games
-            </FantasyTitle>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
-              {features.map((feature, index) => (
-                <FantasyCard key={index} glowing={true} className="p-4 sm:p-6 text-center transition-transform duration-300 hover:scale-[1.03] border-amber-600">
-                  <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">{feature.icon}</div>
-                  <FantasyTitle size="md" className="mb-2 sm:mb-3 text-white text-base sm:text-lg">
-                    {feature.title}
-                  </FantasyTitle>
-                  <FantasyText variant="secondary" className="text-xs sm:text-sm text-amber-200">
-                    {feature.description}
-                  </FantasyText>
-                </FantasyCard>
-              ))}
+          <h1 className="hero-title">
+            Stop the<br />
+            <em>meltdown</em><br />
+            <span className="danger">before</span> it starts.
+          </h1>
+          <p className="hero-sub">
+            Real-time Cloudflare cost monitoring. Workers AI, KV, D1, R2 — tracked live, alerted fast, before the invoice arrives.
+          </p>
+          <p className="hero-aside">
+            // <span>$0.011 / 1k neurons</span> adds up faster than you think
+          </p>
+
+          <div className="hero-cta">
+            <a href="/dashboard">
+              <button className="btn-cta">Connect your account</button>
+            </a>
+            <a href="https://github.com/QuinnsCode/flareup" target="_blank" rel="noopener">
+              <button className="btn-outline">Self-host free →</button>
+            </a>
+          </div>
+
+          {/* Terminal readout */}
+          <div className="terminal">
+            <div className="terminal-header">
+              <div className="terminal-header-dots">
+                <span /><span /><span />
+              </div>
+              <span>FLAREUP — BURN RATE MONITOR</span>
+              <span>{new Date().toISOString().slice(0, 10)}</span>
+            </div>
+            <div className="terminal-body">
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-dim">checking workers AI usage...</span>
+              </div>
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-warn">neurons_today</span>
+                <span className="t-dim">=</span>
+                <span className="t-val">847,293</span>
+                <span className="t-dim"> (free: 10k/day)</span>
+              </div>
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-warn">projected_month_end</span>
+                <span className="t-dim"> =</span>
+                <span className="t-danger"> $2,847.40</span>
+              </div>
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-dim">budget_threshold (75%)</span>
+                <span className="t-danger"> BREACHED</span>
+              </div>
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-ok">alert dispatched</span>
+                <span className="t-dim"> → slack #infra-alerts</span>
+              </div>
+              <div className="terminal-line">
+                <span className="t-prompt">›</span>
+                <span className="t-dim">awaiting input</span>
+                <span className="cursor" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-12 sm:py-20 px-4 sm:px-8 max-w-7xl mx-auto">
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
-              
-              <div className="order-2 lg:order-1">
-                 <FantasyTitle size="lg" className="mb-3 sm:mb-4 text-amber-300 text-xl sm:text-3xl">
-                   Everyone Sees Everything, Instantly
-                 </FantasyTitle>
-                 <FantasyText variant="primary" className="text-base sm:text-lg mb-4 sm:mb-6 text-white/90">
-                   No more asking "did you see my board?" or squinting at webcams. When you play a card, tap mana, or update your life total—it appears on everyone's screen instantly.
-                 </FantasyText>
-                 <ul className="list-disc list-inside space-y-1.5 sm:space-y-2 text-sm sm:text-base text-amber-100/90 ml-2 sm:ml-4">
-                    <li>Import your Commander deck in seconds</li>
-                    <li>Track life, commander damage, and poison counters</li>
-                    <li>See everyone's battlefield and graveyards</li>
-                    <li>Share one link—players don't need accounts</li>
-                    <li>Works on desktop, tablet, or phone</li>
-                 </ul>
-                 <div className="mt-6 sm:mt-8">
-                    <FantasyButton variant="magic" className="w-full sm:w-auto">
-                       <a href={sandboxUrl} className="block w-full h-full px-6">
-                        Try Live Demo Now
-                       </a>
-                    </FantasyButton>
-                 </div>
-              </div>
-              
-              <div className="order-1 lg:order-2 rounded-xl overflow-hidden shadow-2xl border-2 sm:border-4 border-amber-700/50 bg-stone-800 flex items-center justify-center h-64 sm:h-96">
-                <FantasyText variant="secondary" className="text-amber-400/60 text-center p-4 sm:p-8 text-sm sm:text-base">
-                  [Screenshot]<br/>
-                  Commander pod with 4 players<br/>
-                  showing synchronized board states
-                </FantasyText>
-              </div>
-              
-           </div>
-        </section>
+        {/* Two paths */}
+        <section className="two-paths">
+          <div className="section-eyebrow">Two ways to deploy</div>
+          <h2 className="section-title">Pick your setup</h2>
 
-        {/* Social Features */}
-        <section className="py-12 sm:py-20 px-4 sm:px-8 bg-stone-900/50 border-t border-b border-amber-800/50">
-          <div className="max-w-5xl mx-auto text-center">
-            <FantasyTitle size="lg" className="mb-8 sm:mb-12 text-amber-300 text-2xl sm:text-3xl">
-              Actually Social. Not Just Video Calls.
-            </FantasyTitle>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              <FantasyCard className="p-6 bg-stone-800/80 border-amber-700/50">
-                <div className="text-5xl mb-4">🔗</div>
-                <FantasyTitle size="md" className="text-amber-300 mb-3">
-                  Share Links, Not Logins
-                </FantasyTitle>
-                <FantasyText variant="secondary" className="text-amber-100/90 text-sm">
-                  Create a game, copy the link, send it to your pod. They click and play—no account required for players.
-                </FantasyText>
-              </FantasyCard>
-              
-              <FantasyCard className="p-6 bg-stone-800/80 border-amber-700/50">
-                <div className="text-5xl mb-4">⚡</div>
-                <FantasyTitle size="md" className="text-amber-300 mb-3">
-                  Live Sync Engine
-                </FantasyTitle>
-                <FantasyText variant="secondary" className="text-amber-100/90 text-sm">
-                  Built from scratch for multiplayer. Every action syncs instantly—no refresh, no delay, no "did you get that?"
-                </FantasyText>
-              </FantasyCard>
-              
-              <FantasyCard className="p-6 bg-stone-800/80 border-amber-700/50">
-                <div className="text-5xl mb-4">👥</div>
-                <FantasyTitle size="md" className="text-amber-300 mb-3">
-                  Your Playgroup, Online
-                </FantasyTitle>
-                <FantasyText variant="secondary" className="text-amber-100/90 text-sm">
-                  Play with friends across the country or around the world. Works great for regular pods or pickup games.
-                </FantasyText>
-              </FantasyCard>
+          <div className="paths-grid">
+            <div className="path-card hosted">
+              <span className="path-tag hosted"><Eye size={10} /> Hosted dashboard</span>
+              <div className="path-title">Instant visibility</div>
+              <div className="path-desc">
+                Paste a read-only API token. We verify it has zero write access, encrypt it in your session cookie, and show you a live cost dashboard. No database. No token storage.
+              </div>
+              <div className="path-example orange">
+                flareup.dev/dashboard<br />
+                <span className="dim">→ token verified read-only</span><br />
+                <span className="dim">→ encrypted in HttpOnly cookie</span>
+              </div>
+              <div className="path-features">
+                {[
+                  "Token verified read-only on connect — write permissions rejected",
+                  "Encrypted session cookie only — never stored server-side",
+                  "Workers · KV · D1 · R2 · Workers AI · Durable Objects",
+                  "Cost projections updated every page load",
+                ].map(f => (
+                  <div className="path-feature" key={f}>
+                    <span className="path-feature-dot" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="path-card self">
+              <span className="path-tag self"><Bell size={10} /> Self-hosted alerts</span>
+              <div className="path-title">Background sentinel</div>
+              <div className="path-desc">
+                Deploy a Worker to your own Cloudflare account. It runs every 5 minutes, fires spike detection, burn rate alerts, and daily reports to Slack, Discord, or any webhook.
+              </div>
+              <div className="path-example red">
+                <span className="dim">$ </span>npx create-flareup<br />
+                <span className="dim">$ </span>wrangler secret put CF_API_TOKEN<br />
+                <span className="dim">$ </span>wrangler deploy<br />
+                <span className="dim"># runs on your infra, $0 cost</span>
+              </div>
+              <div className="path-features">
+                {[
+                  "Cron every 5min — spike detection against 7-day rolling average",
+                  "Hourly burn rate + month-end projection",
+                  "Webhook to Slack, Discord, PagerDuty, or any HTTP endpoint",
+                  "Runs on CF free tier — costs you nothing",
+                ].map(f => (
+                  <div className="path-feature" key={f}>
+                    <span className="path-feature-dot" />
+                    {f}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-12 sm:py-20 px-4 sm:px-8 text-center bg-stone-800 border-t border-amber-800">
-          <div className="max-w-3xl mx-auto">
-            <FantasyTitle size="xl" className="mb-3 sm:mb-4 text-white text-2xl sm:text-4xl lg:text-5xl">
-              Ready to Play Commander Online?
-            </FantasyTitle>
-            <FantasyText variant="primary" className="text-base sm:text-lg mb-6 sm:mb-8 text-amber-200">
-              Join players running their Commander pods on the fastest, smoothest MTG virtual tabletop.
-            </FantasyText>
-            
-            {isLoggedIn && orgUrl ? (
-              <FantasyButton variant="magic" size="lg" className="text-sm sm:text-base">
-                <a href={orgUrl} className="block w-full h-full px-6 sm:px-8">
-                  Go to My Games
-                </a>
-              </FantasyButton>
-            ) : (
-              <div className="flex gap-3 sm:gap-4 justify-center flex-wrap">
-                <FantasyButton variant="magic" size="lg" className="text-sm sm:text-base">
-                  <a href="/user/register" className="block w-full h-full px-4 sm:px-8">
-                    Start Playing Free
-                  </a>
-                </FantasyButton>
-                <FantasyButton variant="secondary" size="lg" className="text-sm sm:text-base">
-                  <a href={sandboxUrl} className="block w-full h-full px-4 sm:px-8">
-                    Try Demo First
-                  </a>
-                </FantasyButton>
+        {/* What it monitors */}
+        <div className="features">
+          {[
+            {
+              icon: <Flame size={24} strokeWidth={1.6} />,
+              title: "Workers AI — the big one",
+              desc: "Neurons bill at $0.011/1k. A busy llama-3.3-70b day can torch your free tier in minutes. FlareUp tracks by model, projects month-end, and fires before the damage is done.",
+            },
+            {
+              icon: <Zap size={24} strokeWidth={1.6} />,
+              title: "Spike detection",
+              desc: "Compares today's usage against your 7-day rolling average. If something 3× spikes — a runaway loop, a bot, a misconfigured retry — you hear about it in under 10 minutes.",
+            },
+            {
+              icon: <ShieldCheck size={24} strokeWidth={1.6} />,
+              title: "Read-only by force",
+              desc: "Your token is validated against the CF permissions API on connect. If it has write access — deploy, delete, DNS — FlareUp rejects it. Your infra stays untouchable.",
+            },
+            {
+              icon: <Terminal size={24} strokeWidth={1.6} />,
+              title: "KV · D1 · R2 · DO",
+              desc: "Every billable Cloudflare product tracked. KV reads, D1 rows, R2 ops, Durable Object duration. One dashboard. One projection. No blind spots.",
+            },
+            {
+              icon: <Bell size={24} strokeWidth={1.6} />,
+              title: "Alert tiers",
+              desc: "Configure 25%, 50%, 75%, 100% budget tiers. Each tier fires its own webhooks, repeats on an interval, and can target different channels — #infra vs #on-call.",
+            },
+            {
+              icon: <Eye size={24} strokeWidth={1.6} />,
+              title: "Zero infra, zero cost",
+              desc: "Hosted dashboard is static RSC on Pages. Self-hosted Worker runs on the free tier. No database, no relay, no monthly bill for the monitoring itself.",
+            },
+          ].map(f => (
+            <div className="feature" key={f.title}>
+              <div className="feature-icon">{f.icon}</div>
+              <div className="feature-title">{f.title}</div>
+              <div className="feature-desc">{f.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* The incident that started it */}
+        <section className="incident">
+          <div className="section-eyebrow" style={{ marginBottom: 32 }}>The incident that built this</div>
+          <div className="incident-card">
+            <div className="incident-header">
+              <span className="alert-blink" />
+              <span className="incident-level">SEV-1 BILLING INCIDENT</span>
+              <span className="incident-time">detected 03:47 UTC</span>
+            </div>
+            <div className="incident-body">
+              <div className="incident-row">
+                <span className="incident-key">service</span>
+                <span className="incident-val">Workers AI — @cf/meta/llama-3.3-70b-instruct</span>
               </div>
-            )}
-            
-            <p className="mt-6 text-sm text-amber-400/80">
-              Free tier: 4 players • 3 games • Perfect for casual pods
-            </p>
+              <div className="incident-row">
+                <span className="incident-key">neurons_billed</span>
+                <span className="incident-val bad">8,291,847,392</span>
+              </div>
+              <div className="incident-row">
+                <span className="incident-key">invoice_total</span>
+                <span className="incident-val bad">$8,247.19</span>
+              </div>
+              <div className="incident-row">
+                <span className="incident-key">first_alert_sent</span>
+                <span className="incident-val bad">never</span>
+              </div>
+              <div className="incident-row">
+                <span className="incident-key">monitoring_tool</span>
+                <span className="incident-val bad">none</span>
+              </div>
+              <div className="incident-row">
+                <span className="incident-key">resolution</span>
+                <span className="incident-val">built FlareUp</span>
+              </div>
+            </div>
+            <div className="incident-footer">
+              <span className="status-dot" />
+              FLAREUP ACTIVE — this incident cannot happen again
+            </div>
           </div>
         </section>
+      </main>
 
-        {/* Footer */}
-        <footer className="p-4 sm:p-6 text-center text-xs sm:text-sm text-amber-500 border-t border-amber-900 bg-stone-900">
-          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-0">
-            <span>© {new Date().getFullYear()} QNTBR - Social Virtual Tabletop for Magic: The Gathering</span>
-            <span className="hidden sm:inline mx-2">|</span>
-            <a href="/privacy" className="hover:underline">Privacy</a>
-            <span className="mx-2">|</span>
-            <a href="/terms" className="hover:underline">Terms</a>
-            <span className="mx-2">|</span>
-            <a href="/changelog" className="hover:underline">Changelog</a>
-          </div>
-        </footer>
-
-      </div>
-    </FantasyBackground>
+      <footer>
+        <span className="footer-brand">
+          <span style={{ color: "var(--orange-l)" }}>▲</span> FLAREUP —{" "}
+          <a href="https://flareup.dev" style={{ color: "var(--text-2)", marginLeft: 4 }}>flareup.dev</a>
+        </span>
+        <div className="footer-links">
+          <a href="https://github.com/QuinnsCode/flareup" target="_blank" rel="noopener">GitHub</a>
+          <a href="/changelog">Changelog</a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+        </div>
+      </footer>
+    </>
   );
 }

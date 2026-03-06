@@ -1,198 +1,195 @@
-// @/app/pages/static/PrivacyPage.tsx
-import { LegalLayout } from '@/app/components/theme/ContentPageLayout';
+// src/app/pages/legal/PrivacyPage.tsx
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" lastUpdated="December 1, 2024">
-      <h2>1. Introduction</h2>
-      <p>
-        Welcome to QNTBR ("we," "our," or "us"). This Privacy Policy explains how we collect, 
-        use, and protect your information when you use our virtual tabletop platform for 
-        Magic: The Gathering and other trading card games.
-      </p>
-      <p>
-        <strong>Educational & Non-Commercial Use:</strong> This platform is provided as a 
-        non-profit educational tool for learning game design, web development, and multiplayer 
-        systems. We do not sell cards, operate as a business, or generate revenue.
-      </p>
+    <div style={{
+      minHeight: "100vh",
+      background: "#060a06",
+      color: "#e8f0e8",
+      fontFamily: "'Barlow', system-ui, sans-serif",
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow:wght@300;400;500&family=Barlow+Condensed:wght@600;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #060a06; }
+        a { color: #f48c06; text-decoration: none; }
+        a:hover { text-decoration: underline; color: #e85d04; }
+        strong { color: #e8f0e8; }
+      `}</style>
 
-      <h2>2. Information We Collect</h2>
-      
-      <h3>2.1 Account Information</h3>
-      <p>When you create an account, we collect:</p>
-      <ul>
-        <li>Email address (for authentication)</li>
-        <li>Username/display name</li>
-        <li>Password (encrypted and never stored in plain text)</li>
-        <li>Organization/guild membership information</li>
-      </ul>
+      {/* Header */}
+      <header style={{
+        padding: "16px 32px",
+        borderBottom: "1px solid rgba(232,93,4,0.15)",
+        display: "flex", alignItems: "center",
+        background: "rgba(6,10,6,0.92)",
+        position: "sticky", top: 0, zIndex: 100,
+        backdropFilter: "blur(24px)",
+      }}>
+        <a href="/" style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 18, letterSpacing: "0.12em",
+          color: "#f48c06",
+          textShadow: "0 0 20px rgba(232,93,4,0.3)",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ color: "#ef4444" }}>▲</span> FLAREUP
+        </a>
+      </header>
 
-      <h3>2.2 Game Data</h3>
-      <p>During gameplay, we collect:</p>
-      <ul>
-        <li>Deck lists you import or create</li>
-        <li>Game state and actions (card movements, life totals, etc.)</li>
-        <li>Chat messages and game interactions</li>
-        <li>Connection data (IP address, browser type, timestamps)</li>
-      </ul>
+      {/* Content */}
+      <main style={{ maxWidth: 720, margin: "0 auto", padding: "60px 32px 100px" }}>
+        <p style={{
+          fontFamily: "'Share Tech Mono', monospace",
+          fontSize: 10, color: "#3a4e3a",
+          textTransform: "uppercase", letterSpacing: "0.16em", marginBottom: 12,
+        }}>
+          // legal
+        </p>
+        <h1 style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontSize: 42, color: "#e8f0e8",
+          letterSpacing: "0.06em", textTransform: "uppercase",
+          marginBottom: 8,
+        }}>
+          Privacy Policy
+        </h1>
+        <p style={{
+          fontFamily: "'Share Tech Mono', monospace",
+          fontSize: 12, color: "#3a4e3a", marginBottom: 48,
+        }}>
+          last_updated: 2026-03-01
+        </p>
 
-      <h3>2.3 Automatically Collected Information</h3>
-      <ul>
-        <li>Device and browser information</li>
-        <li>Usage statistics and analytics</li>
-        <li>Performance metrics (for debugging and optimization)</li>
-        <li>Cookie data (for authentication and preferences)</li>
-      </ul>
+        <Section title="1. The short version">
+          <P>
+            FlareUp is a read-only Cloudflare cost monitoring tool. Your API token is verified
+            as read-only on connect, encrypted in an HttpOnly session cookie, and never stored
+            in any database. We have no access to your Cloudflare infrastructure — only the
+            analytics data you choose to view.
+          </P>
+        </Section>
 
-      <h2>3. How We Use Your Information</h2>
-      <p>We use collected information for:</p>
-      <ul>
-        <li><strong>Authentication:</strong> Verifying your identity and managing your account</li>
-        <li><strong>Gameplay:</strong> Enabling multiplayer features and saving game state</li>
-        <li><strong>Communication:</strong> Sending important updates about the service</li>
-        <li><strong>Improvement:</strong> Analyzing usage patterns to improve the platform</li>
-        <li><strong>Security:</strong> Detecting and preventing abuse, cheating, or malicious activity</li>
-        <li><strong>Moderation:</strong> Enforcing our terms of service and community guidelines</li>
-      </ul>
+        <Section title="2. What we collect">
+          <P>
+            <strong>Session cookie:</strong> Your Cloudflare API token is AES-GCM encrypted
+            and stored in an HttpOnly, Secure, SameSite=Strict browser cookie. It expires after
+            8 hours. JavaScript cannot read it. We cannot read it server-side without your
+            browser presenting it.
+          </P>
+          <P>
+            <strong>Usage data fetched on your behalf:</strong> When you load the dashboard,
+            FlareUp queries the Cloudflare GraphQL Analytics API using your token. This data
+            is rendered server-side and returned as HTML. It is not logged or stored.
+          </P>
+          <P>
+            <strong>Alert configuration:</strong> If you configure budget tiers and webhooks,
+            these are stored in Cloudflare KV keyed to your account ID. This contains no
+            credentials — only threshold percentages and webhook URLs you provide.
+          </P>
+          <P>
+            <strong>What we don't collect:</strong> Your Cloudflare credentials, KV data, D1
+            data, R2 objects, Worker source code, DNS records, or any other infrastructure content.
+            The read-only token cannot access these, and we never attempt to.
+          </P>
+        </Section>
 
-      <h2>4. Data Storage and Security</h2>
-      <p>
-        Your data is stored securely using Cloudflare Workers, Durable Objects, and encrypted 
-        databases. We implement industry-standard security measures including:
-      </p>
-      <ul>
-        <li>Encrypted passwords using bcrypt hashing</li>
-        <li>HTTPS encryption for all data transmission</li>
-        <li>Secure session management</li>
-        <li>Regular security audits and updates</li>
-      </ul>
-      <p>
-        <strong>Data Retention:</strong> Account data is retained as long as your account is active. 
-        Game data may be automatically deleted after periods of inactivity (typically 30 days for 
-        regular games, 24 hours for sandbox games).
-      </p>
+        <Section title="3. Token security">
+          <P>
+            On connect, your token is validated against the Cloudflare{" "}
+            <code style={{ fontFamily: "'Share Tech Mono', monospace", fontSize: 12, color: "#f48c06" }}>/user/tokens/verify</code>
+            {" "}and permissions endpoints. FlareUp <strong>rejects any token with write, edit,
+            deploy, or admin permissions</strong>. Only Account Analytics: Read is accepted.
+          </P>
+          <P>
+            Your token is never written to a database, never logged, and never transmitted to
+            any third party. It exists only in your encrypted session cookie and in-memory
+            during a server-side request.
+          </P>
+        </Section>
 
-      <h2>5. Third-Party Services</h2>
-      <p>We use the following third-party services:</p>
-      <ul>
-        <li><strong>Scryfall:</strong> Card images and data (subject to Scryfall's terms and Wizards of the Coast's fan content policy)</li>
-        <li><strong>Cloudflare:</strong> Hosting, CDN, and infrastructure</li>
-        <li><strong>Discord:</strong> Optional integration for game coordination</li>
-      </ul>
-      <p>
-        These services have their own privacy policies, and we are not responsible for their practices.
-      </p>
+        <Section title="4. Self-hosted alert worker">
+          <P>
+            If you deploy the optional background Worker to your own Cloudflare account, your
+            API token is stored as a Cloudflare Worker secret — on your infrastructure, under
+            your control. FlareUp (the hosted service) never sees this token.
+          </P>
+        </Section>
 
-      <h2>6. Magic: The Gathering Content</h2>
-      <p>
-        This platform uses Magic: The Gathering card data, images, and names which are owned by 
-        Wizards of the Coast LLC, a subsidiary of Hasbro, Inc.
-      </p>
-      <blockquote>
-        <strong>Fair Use & Fan Content:</strong> We operate under Wizards of the Coast's Fan Content Policy. 
-        This is an unofficial, non-commercial, educational project. We are not affiliated with, endorsed, 
-        sponsored, or approved by Wizards of the Coast. All card images and game content are property of 
-        their respective owners.
-      </blockquote>
+        <Section title="5. Who we share data with">
+          <P>
+            Nobody. FlareUp uses Cloudflare for hosting (Pages, Workers). Your alert config
+            lives in Cloudflare KV. We have no advertising relationships, no analytics vendors,
+            and no data broker arrangements.
+          </P>
+        </Section>
 
-      <h2>7. Children's Privacy</h2>
-      <p>
-        Our service is not directed to children under 13 years of age. We do not knowingly collect 
-        personal information from children under 13. If you are a parent or guardian and believe 
-        your child has provided us with personal information, please contact us immediately.
-      </p>
+        <Section title="6. Data retention">
+          <P>
+            Session cookies expire after 8 hours. Alert configurations in KV persist until
+            you delete them or remove the Worker. There is no account system — no email,
+            no password, no profile to delete.
+          </P>
+        </Section>
 
-      <h2>8. Your Rights and Choices</h2>
-      <p>You have the right to:</p>
-      <ul>
-        <li><strong>Access:</strong> Request a copy of your personal data</li>
-        <li><strong>Correction:</strong> Update or correct your information</li>
-        <li><strong>Deletion:</strong> Request deletion of your account and data</li>
-        <li><strong>Export:</strong> Download your deck lists and game data</li>
-        <li><strong>Opt-out:</strong> Unsubscribe from non-essential communications</li>
-      </ul>
-      <p>
-        To exercise these rights, contact us at <a href="mailto:privacy@qntbr.com">privacy@qntbr.com</a>
-      </p>
+        <Section title="7. Cookies">
+          <P>
+            One cookie: your encrypted session token. HttpOnly (no JS access), Secure (HTTPS
+            only), SameSite=Strict (no cross-site requests). No tracking cookies, no analytics
+            cookies, no third-party anything.
+          </P>
+        </Section>
 
-      <h2>9. Cookies and Tracking</h2>
-      <p>We use cookies for:</p>
-      <ul>
-        <li>Authentication and session management (essential)</li>
-        <li>Remembering your preferences (functional)</li>
-        <li>Analytics and performance monitoring (optional)</li>
-      </ul>
-      <p>
-        You can control cookies through your browser settings, but disabling essential cookies may 
-        prevent you from using certain features.
-      </p>
+        <Section title="8. Changes">
+          <P>
+            Material changes will update the date above. Continued use after changes means
+            acceptance of the updated policy.
+          </P>
+        </Section>
 
-      <h2>10. Data Sharing and Disclosure</h2>
-      <p>
-        We <strong>do not sell</strong> your personal information. We may share data only in the following circumstances:
-      </p>
-      <ul>
-        <li><strong>With your consent:</strong> When you explicitly authorize sharing</li>
-        <li><strong>Legal compliance:</strong> When required by law or legal process</li>
-        <li><strong>Safety and security:</strong> To protect against fraud, abuse, or harm</li>
-        <li><strong>Service providers:</strong> With third parties who help operate our platform (under strict confidentiality)</li>
-      </ul>
+        <Section title="9. Contact">
+          <P>
+            Questions? <a href="mailto:theqntbr@gmail.com">theqntbr@gmail.com</a>
+          </P>
+        </Section>
+      </main>
 
-      <h2>11. International Users</h2>
-      <p>
-        Our servers are located in multiple regions via Cloudflare's global network. By using our 
-        service, you consent to the transfer of your information to countries outside your residence, 
-        which may have different data protection laws.
-      </p>
+      <footer style={{
+        padding: "24px 32px",
+        borderTop: "1px solid rgba(232,93,4,0.1)",
+        display: "flex", gap: 24, justifyContent: "center",
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase",
+        color: "#3a4e3a",
+      }}>
+        <a href="/" style={{ color: "#3a4e3a" }}>Home</a>
+        <a href="/terms" style={{ color: "#3a4e3a" }}>Terms</a>
+        <a href="/privacy" style={{ color: "#3a4e3a" }}>Privacy</a>
+      </footer>
+    </div>
+  );
+}
 
-      <h2>12. Account Termination and Banning</h2>
-      <p>
-        <strong>We reserve the right to suspend or terminate any account at any time, for any reason, 
-        with or without notice.</strong> This includes, but is not limited to:
-      </p>
-      <ul>
-        <li>Violations of our Terms of Service</li>
-        <li>Abusive, harassing, or toxic behavior</li>
-        <li>Cheating or exploiting game mechanics</li>
-        <li>Sharing accounts or impersonating others</li>
-        <li>Automated bot usage or scraping</li>
-        <li>Any activity we deem harmful to the community</li>
-      </ul>
-      <p>
-        Banned users forfeit access to their account and data. We are not obligated to provide 
-        reasons for account actions.
-      </p>
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section style={{ marginBottom: 44, paddingBottom: 44, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      <h2 style={{
+        fontFamily: "'Barlow Condensed', sans-serif",
+        fontSize: 13, fontWeight: 700,
+        letterSpacing: "0.2em", textTransform: "uppercase",
+        color: "#f48c06", marginBottom: 16,
+      }}>
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
 
-      <h2>13. Changes to This Policy</h2>
-      <p>
-        We may update this Privacy Policy from time to time. Changes will be posted on this page 
-        with an updated "Last Updated" date. Your continued use of the service after changes 
-        constitutes acceptance of the updated policy.
-      </p>
-
-      <h2>14. Contact Us</h2>
-      <p>
-        If you have questions about this Privacy Policy or our data practices, contact us at:
-      </p>
-      <ul>
-        <li>Email: <a href="mailto:privacy@qntbr.com">privacy@qntbr.com</a></li>
-        <li>Website: <a href="https://qntbr.com">qntbr.com</a></li>
-      </ul>
-
-      <h2>15. Acknowledgment</h2>
-      <p>
-        By using QNTBR, you acknowledge that you have read, understood, and agree to be bound by 
-        this Privacy Policy.
-      </p>
-      
-      <blockquote>
-        <strong>Wizards of the Coast Fan Content Policy Notice:</strong><br/>
-        Portions of QNTBR are unofficial Fan Content permitted under the Wizards of the Coast 
-        Fan Content Policy. The literal and graphical information presented on this site about 
-        Magic: The Gathering, including card images, the mana symbols, and Oracle text, is 
-        copyright Wizards of the Coast, LLC, a subsidiary of Hasbro, Inc. QNTBR is not produced 
-        by, endorsed by, supported by, or affiliated with Wizards of the Coast.
-      </blockquote>
-    </LegalLayout>
+function P({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ fontSize: 15, color: "#8a9e8a", lineHeight: 1.8, marginBottom: 12 }}>
+      {children}
+    </p>
   );
 }

@@ -10,7 +10,7 @@ export const STRIPE_CONFIG = {
     pro: env.STRIPE_PRO_PRICE_ID!,         // Your $5/month price
   },
   
-  baseUrl: env.BETTER_AUTH_URL || 'https://qntbr.com'
+  baseUrl: env.BETTER_AUTH_URL || 'https://flareup.dev'
 } as const
 
 export function getStripePriceId(tier: 'starter' | 'pro'): string {

@@ -1,12 +1,11 @@
 import styles from "./styles.css?url";
 import { Suspense } from 'react'
-import type { ReactNode } from 'react'
 
 function ErrorFallback({ error }: { error: Error }) {
   return (
     <html>
       <head>
-        <title>Error - QLAVE</title>
+        <title>Error - FlareUp</title>
       </head>
       <body style={{ margin: 0, padding: '2rem', fontFamily: 'system-ui' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -18,10 +17,10 @@ function ErrorFallback({ error }: { error: Error }) {
               padding: '12px 24px', 
               fontSize: '16px', 
               cursor: 'pointer',
-              background: '#3b82f6',
+              background: '#e85d04',
               color: 'white',
               border: 'none',
-              borderRadius: '8px'
+              borderRadius: '4px'
             }}
           >
             Refresh Page
@@ -44,16 +43,13 @@ export function Document({ children }: { children: React.ReactNode }) {
     <head>
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Q N T B R</title>
+      <title>FlareUp</title>
       <link rel="icon" type="image/png" href="/favicon.png"/>
       <link rel="modulepreload" href="/src/client.tsx" />
       <link rel="stylesheet" href={styles} />
-      
-      {/* Google Fonts - Arabian + Latin Fantasy */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;500;600;700&family=Trajan+Pro:wght@400;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
-      
+      <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
     </head>
     <body>
       <Suspense fallback={<div>Loading...</div>}>

@@ -187,7 +187,7 @@ export async function setupSessionContext(ctx: AppContext, request: Request) {
  * - Everything falls apart
  *
  * WHAT THIS DOES:
- * 1. Extracts org slug from subdomain (ryan.qntbr.com -> "ryan")
+ * 1. Extracts org slug from subdomain (ryan.flareup.dev -> "ryan")
  * 2. Looks up org in database
  * 3. Checks if user has membership in that org
  * 4. Sets ctx.organization and ctx.userRole
@@ -201,8 +201,8 @@ export async function setupSessionContext(ctx: AppContext, request: Request) {
  * TESTED WORKING: March 2, 2026 @ 6:46 PM PST (commit b4d443e)
  *
  * IF YOU MUST CHANGE THIS:
- * 1. Test login flow: qntbr.com/user/login -> ryan.qntbr.com/sanctum
- * 2. Test root redirect: ryan.qntbr.com/ -> ryan.qntbr.com/sanctum
+ * 1. Test login flow: flareup.dev/user/login -> ryan.flareup.dev/dashboard
+ * 2. Test root redirect: ryan.flareup.dev/ -> ryan.flareup.dev/dashboard
  * 3. Test sanctum page loads with org context
  * 4. Test deckBuilder still works
  * 5. DO NOT DEPLOY UNTIL ALL TESTS PASS

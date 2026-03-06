@@ -1,66 +1,79 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "my-app",
+	"name": "flareup",
 	"main": "src/worker.tsx",
 	"compatibility_date": "2025-08-21",
 	"compatibility_flags": [
-		"nodejs_compat"
+	  "nodejs_compat"
 	],
 	"assets": {
-		"binding": "ASSETS",
-		"directory": "public"
+	  "binding": "ASSETS",
+	  "directory": "public"
 	},
 	"routes": [
-		"qlave.dev/*",
-		"*.qlave.dev/*"
+	  "flareup.dev/*",
+	  "*.flareup.dev/*"
 	],
 	"observability": {
-		"enabled": true
+	  "enabled": true
+	},
+	"triggers": {
+	  // Cron 1: every 5 min — spike detection
+	  // Cron 2: every hour  — burn rate + month projection
+	  // Cron 3: daily 00:00 — full report webhook
+	  "crons": ["*/5 * * * *", "0 * * * *", "0 0 * * *"]
 	},
 	"durable_objects": {
-		"bindings": [
-			{
-				"name": "SESSION_DURABLE_OBJECT",
-				"class_name": "SessionDurableObject"
-			},
-			{
-				"name": "USER_SESSION_DO",
-				"class_name": "UserSessionDO"
-			}
-		]
+	  "bindings": [
+		{
+		  "name": "SESSION_DURABLE_OBJECT",
+		  "class_name": "SessionDurableObject"
+		},
+		{
+		  "name": "USER_SESSION_DO",
+		  "class_name": "UserSessionDO"
+		}
+	  ]
 	},
 	"vars": {
-		"BETTER_AUTH_URL": "https://qlave.dev"
+	  "BETTER_AUTH_URL": "https://flareup.dev",
+	  "PRIMARY_DOMAIN": "flareup.dev"
 	},
 	"migrations": [
-		{
-			"tag": "v1",
-			"new_sqlite_classes": [
-				"SessionDurableObject"
-			]
-		},
-		{
-			"tag": "v2",
-			"new_sqlite_classes": [
-				"UserSessionDO"
-			]
-		}
+	  {
+		"tag": "v1",
+		"new_sqlite_classes": [
+		  "SessionDurableObject"
+		]
+	  },
+	  {
+		"tag": "v2",
+		"new_sqlite_classes": [
+		  "UserSessionDO"
+		]
+	  }
 	],
 	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "my-app-db",
-			"database_id": "PUT_YOUR_ID_HERE"
-		}
+	  {
+		"binding": "DB",
+		"database_name": "flareup-db",
+		"database_id": "f9ef5408-97af-4b35-a8a5-1197c06fa641"
+	  }
 	],
 	"kv_namespaces": [
-		{
-			"binding": "RATELIMIT_KV",
-			"id": "PUT_YOUR_ID_HERE"
-		},
-		{
-			"binding": "AUTH_CACHE_KV",
-			"id": "PUT_YOUR_ID_HERE"
-		}
+	  {
+		"binding": "RATELIMIT_KV",
+		"id": "c263e63e8bee46788f0ee52df05f4d83"
+	  },
+	  {
+		"binding": "AUTH_CACHE_KV",
+		"id": "0741fad9ff21477fa3d7ce331d4026dc"
+	  },
+	  // ── FlareUp: alert config per-user (keyed by CF account ID)
+	  {
+		"binding": "ALERT_CONFIG_KV",
+		"id": "ab0a50867a4c4ea6b13642d5e98d4bbc"
+	  }
 	]
-}
+  }
+  
