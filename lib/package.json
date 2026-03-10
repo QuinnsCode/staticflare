@@ -1,0 +1,35 @@
+{
+    "name": "staticflare",
+    "version": "0.1.0",
+    "description": "SSG made easy — deploy static routes to Cloudflare R2",
+    "license": "MIT",
+    "type": "module",
+    "bin": {
+      "staticflare": "./dist/cli/index.js"
+    },
+    "exports": {
+      ".": "./dist/core/index.js",
+      "./vite": "./dist/vite-plugin/index.js",
+      "./cf": "./dist/cf-client/index.js",
+      "./adapters/rwsdk": "./dist/adapters/rwsdk.js"
+    },
+    "files": [
+      "dist"
+    ],
+    "scripts": {
+      "build": "tsc -p tsconfig.lib.json",
+      "typecheck": "tsc -p tsconfig.lib.json --noEmit"
+    },
+    "dependencies": {
+      "tsx": "^4.21.0"
+    },
+    "peerDependencies": {
+      "@types/node": ">=18",
+      "vite": ">=5"
+    },
+    "peerDependenciesMeta": {
+      "vite": {
+        "optional": true
+      }
+    }
+  }

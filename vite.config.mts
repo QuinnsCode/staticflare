@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { redwood } from "rwsdk/vite";
 import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { staticflare } from "./lib/vite-plugin/index";
 
 export default defineConfig({
   optimizeDeps: {
@@ -24,6 +25,7 @@ export default defineConfig({
       viteEnvironment: { name: "worker" },
     }),
     redwood(),
-    tailwindcss()
+    tailwindcss(),
+    staticflare(),  // ← always last
   ],
 });

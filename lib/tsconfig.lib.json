@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
+    "paths": {
+      "rwsdk/worker": ["./types/stubs.d.ts"],
+      "vite": ["./types/stubs.d.ts"]
+    }
+  },
+  "include": [
+    "core/**/*",
+    "cf-client/**/*",
+    "adapters/**/*",
+    "vite-plugin/**/*",
+    "cli/**/*",
+    "types/**/*"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
